@@ -1,0 +1,12 @@
+{
+  "name": "curso-lenguajes-y-compiladores",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Curso interactivo de Lenguajes y Compiladores (UNLaM) — 106 lecciones en profundidad sobre Aho, ejercitación y mesa de trabajo. Sitio estático, offline-first.",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "npx --yes serve@14 ."
+  },
+  "keywords": ["compiladores", "unlam", "aho", "lenguajes", "curso", "estatico"],
+  "license": "MIT"
+}

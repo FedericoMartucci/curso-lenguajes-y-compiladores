@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fases del compilador — Aho fig. 1.7</title>
+<style>
+  :root{
+    --surface-0:#faf9f5; --surface-1:#f1efe8; --surface-2:#ffffff;
+    --text-primary:#1a1a18; --text-secondary:#5f5e5a; --text-muted:#8a8880;
+    --border:#e2e0d8; --border-strong:#c8c6bd;
+    --text-accent:#2c5aa0; --bg-accent:#e6f0fb; --radius:8px;
+    --font-mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --font-sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --surface-0:#1a1a18; --surface-1:#242422; --surface-2:#2e2e2b;
+      --text-primary:#ecebe6; --text-secondary:#a8a7a0; --text-muted:#6f6e69;
+      --border:#3a3a37; --border-strong:#4a4a46;
+      --text-accent:#9db8e8; --bg-accent:#22304a;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:16px;background:var(--surface-0);color:var(--text-primary);
+       font-family:var(--font-sans);line-height:1.6;font-size:15px}
+  button{font-family:inherit;background:transparent;border:.5px solid var(--border-strong);
+         color:var(--text-secondary);border-radius:var(--radius);padding:6px 12px;cursor:pointer;
+         transition:background .15s}
+  button:hover{background:var(--surface-1)}
+  button:active{transform:scale(.98)}
+  pre{margin:0;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<div style="max-width:720px;margin:0 auto;">
+
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.25rem;">
+    <button id="prev" aria-label="Fase anterior" style="font-size:18px;line-height:1;padding:6px 14px;">‹</button>
+    <div style="flex:1; height:4px; background:var(--surface-1); border-radius:2px; position:relative;">
+      <div id="bar" style="position:absolute; left:0; top:0; bottom:0; width:0%; background:var(--text-primary); border-radius:2px; transition:width .2s;"></div>
+    </div>
+    <button id="next" aria-label="Fase siguiente" style="font-size:18px;line-height:1;padding:6px 14px;">›</button>
+  </div>
+
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;">
+    <div>
+      <div id="fase" style="font-size:18px; font-weight:500;">Flujo de caracteres</div>
+      <div id="catedra" style="font-size:13px; color:var(--text-secondary); margin-top:2px;">El programa fuente, tal cual</div>
+    </div>
+    <span id="parte" style="font-size:12px; padding:4px 12px; border-radius:var(--radius); background:var(--surface-1); color:var(--text-secondary); white-space:nowrap;">entrada</span>
+  </div>
+
+  <div style="display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); gap:12px; align-items:start;">
+    <div style="background:var(--surface-1); border-radius:var(--radius); padding:1rem; min-height:210px;">
+      <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">representación</div>
+      <pre id="rep" style="font-size:13px; line-height:1.6; color:var(--text-primary); white-space:pre; overflow-x:auto;"></pre>
+    </div>
+    <div style="background:var(--surface-2); border:.5px solid var(--border); border-radius:12px; padding:.85rem 1rem;">
+      <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">tabla de símbolos</div>
+      <table style="width:100%; font-size:12px; font-family:var(--font-mono); border-collapse:collapse;">
+        <tr><td style="padding:3px 0; color:var(--text-secondary);">1</td><td style="padding:3px 0;">posicion</td></tr>
+        <tr><td style="padding:3px 0; color:var(--text-secondary);">2</td><td style="padding:3px 0;">inicial</td></tr>
+        <tr><td style="padding:3px 0; color:var(--text-secondary);">3</td><td style="padding:3px 0;">velocidad</td></tr>
+      </table>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:10px; line-height:1.5;">Las tres son float. El 60 es int: por eso aparece la coerción.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:12px; background:var(--bg-accent); border-radius:var(--radius); padding:.75rem 1rem;">
+    <div style="font-size:12px; color:var(--text-accent); margin-bottom:4px;">acá se detecta</div>
+    <div id="detecta" style="font-size:13px; color:var(--text-accent); line-height:1.6;"></div>
+  </div>
+
+  <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:1rem;">
+    <button id="b0" style="font-size:12px; padding:4px 10px;">0</button>
+    <button id="b1" style="font-size:12px; padding:4px 10px;">léxico</button>
+    <button id="b2" style="font-size:12px; padding:4px 10px;">sintáctico</button>
+    <button id="b3" style="font-size:12px; padding:4px 10px;">semántico</button>
+    <button id="b4" style="font-size:12px; padding:4px 10px;">GCI</button>
+    <button id="b5" style="font-size:12px; padding:4px 10px;">optimización</button>
+    <button id="b6" style="font-size:12px; padding:4px 10px;">código final</button>
+  </div>
+
+</div>
+<script>
+const pasos = [
+  {fase:"Flujo de caracteres",catedra:"El programa fuente, tal cual",parte:"entrada",
+   rep:"p o s i c i o n   =   i n i c i a l   +\n\nv e l o c i d a d   *   6 0",
+   detecta:"Nada todavía. Para el compilador esto es una tira de caracteres sin significado: no sabe que \"posicion\" es una palabra."},
+  {fase:"Analizador léxico",catedra:"Cátedra: analizador lexicográfico · Flex",parte:"análisis · front-end",
+   rep:"⟨id, 1⟩  ⟨=⟩  ⟨id, 2⟩  ⟨+⟩  ⟨id, 3⟩  ⟨*⟩  ⟨60⟩",
+   detecta:"Carácter inválido, comentario sin cerrar. En la acción léxica: constante fuera de rango, identificador demasiado largo. Todo en tiempo de compilación."},
+  {fase:"Analizador sintáctico",catedra:"Cátedra: parser SLR · devuelve la lista de reglas",parte:"análisis · front-end",
+   rep:"          =\n        /   \\\n    ⟨id,1⟩     +\n            /   \\\n       ⟨id,2⟩     *\n                /   \\\n           ⟨id,3⟩    60",
+   detecta:"Falta un punto y coma, paréntesis desbalanceado, una secuencia de tokens que ninguna regla acepta. El árbol ya impone que * se resuelve antes que +."},
+  {fase:"Analizador semántico",catedra:"Cátedra: acciones semánticas · tabla de síntesis",parte:"análisis · front-end",
+   rep:"          =\n        /   \\\n    ⟨id,1⟩     +\n            /   \\\n       ⟨id,2⟩     *\n                /   \\\n           ⟨id,3⟩  inttofloat\n                       |\n                      60",
+   detecta:"Variable no declarada (consulta la tabla de símbolos), incompatibilidad de tipos. Acá el compilador inserta la coerción inttofloat(60): el 60 es entero y velocidad es float."},
+  {fase:"Generador de código intermedio",catedra:"Cátedra: polaca inversa · tercetos · árbol",parte:"análisis · front-end",
+   rep:"t1 = inttofloat(60)\nt2 = id3 * t1\nt3 = id2 + t2\nid1 = t3",
+   detecta:"Código de tres direcciones: a lo sumo un operador por instrucción, y cada resultado intermedio necesita un temporal. El orden de las operaciones ya quedó congelado."},
+  {fase:"Optimizador de código",catedra:"Cátedra: reducción simple · redundancia · código muerto",parte:"independiente de la máquina",
+   rep:"t1 = id3 * 60.0\nid1 = id2 + t1",
+   detecta:"La conversión de 60 a float se resuelve una sola vez, en compilación (constant folding). Y t3 solo servía para pasarle su valor a id1: se elimina. De 4 instrucciones a 2."},
+  {fase:"Generador de código",catedra:"Cátedra: Assembler + coprocesador matemático",parte:"síntesis · back-end",
+   rep:"LDF  R2, id3\nMULF R2, R2, #60.0\nLDF  R1, id2\nADDF R1, R1, R2\nSTF  id1, R1",
+   detecta:"Se eligen registros y se emiten instrucciones de máquina. Aho usa una máquina genérica; tu cátedra baja al 8087: FLD, FMUL, FADD, FSTP."}
+];
+let i=0; const $=id=>document.getElementById(id);
+function render(){
+  const p=pasos[i];
+  $("fase").textContent=p.fase; $("catedra").textContent=p.catedra;
+  $("parte").textContent=p.parte; $("rep").textContent=p.rep; $("detecta").textContent=p.detecta;
+  $("bar").style.width=Math.round((i/(pasos.length-1))*100)+"%";
+  for(let k=0;k<pasos.length;k++){const b=$("b"+k);
+    b.style.borderColor=(k===i)?"var(--text-primary)":"var(--border-strong)";
+    b.style.color=(k===i)?"var(--text-primary)":"var(--text-secondary)";}
+}
+$("next").onclick=()=>{i=(i+1)%pasos.length;render();};
+$("prev").onclick=()=>{i=(i-1+pasos.length)%pasos.length;render();};
+for(let k=0;k<pasos.length;k++)$("b"+k).onclick=()=>{i=k;render();};
+render();
+</script>
+</body>
+</html>

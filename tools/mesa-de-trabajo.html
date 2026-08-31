@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mesa de trabajo — LyC</title>
+<style>
+  :root{
+    --surface-0:#faf9f5; --surface-1:#f1efe8; --surface-2:#ffffff;
+    --text-primary:#1a1a18; --text-secondary:#5f5e5a; --text-muted:#8a8880;
+    --border:#e2e0d8; --border-strong:#c8c6bd;
+    --text-accent:#2c5aa0; --bg-accent:#e6f0fb; --radius:8px;
+    --font-mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --font-sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --surface-0:#1a1a18; --surface-1:#242422; --surface-2:#2e2e2b;
+      --text-primary:#ecebe6; --text-secondary:#a8a7a0; --text-muted:#6f6e69;
+      --border:#3a3a37; --border-strong:#4a4a46;
+      --text-accent:#9db8e8; --bg-accent:#22304a;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:18px;background:var(--surface-0);color:var(--text-primary);
+       font-family:var(--font-sans);font-size:15px;line-height:1.5}
+  h1{font-size:19px;font-weight:500;margin:0 0 2px}
+  h2{font-size:14px;font-weight:500;margin:0 0 8px;color:var(--text-secondary)}
+  .sub{font-size:13px;color:var(--text-muted);margin:0 0 16px}
+  .wrap{max-width:900px;margin:0 auto}
+  .card{background:var(--surface-2);border:.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+  button{font-family:inherit;background:transparent;border:.5px solid var(--border-strong);
+    color:var(--text-primary);border-radius:6px;padding:5px 9px;cursor:pointer;font-size:13px}
+  button:hover{background:var(--surface-1)}
+  button:active{transform:scale(.97)}
+  .sym{font-family:var(--font-mono);min-width:34px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .tab{font-size:12px;padding:5px 11px;border-radius:20px}
+  .tab.on{background:var(--text-accent);color:#fff;border-color:var(--text-accent)}
+  .keys{display:flex;gap:6px;flex-wrap:wrap}
+  textarea{width:100%;background:var(--surface-1);color:var(--text-primary);border:.5px solid var(--border-strong);
+    border-radius:8px;padding:10px 12px;font-family:var(--font-mono);font-size:13px;line-height:1.55;resize:vertical}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+  label.fld{font-size:12px;color:var(--text-muted)}
+  input[type=text]{flex:1;min-width:200px;background:var(--surface-1);color:var(--text-primary);
+    border:.5px solid var(--border-strong);border-radius:6px;padding:8px 10px;font-family:var(--font-mono);font-size:13px}
+  .treebox{background:var(--surface-1);border:.5px solid var(--border);border-radius:8px;margin-top:10px;overflow:auto}
+  svg text{font-family:var(--font-mono)}
+  .hint{font-size:12px;color:var(--text-muted);margin-top:6px}
+  .ej{font-size:12px;color:var(--text-accent);cursor:pointer;text-decoration:underline;margin-right:12px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Mesa de trabajo</h1>
+  <p class="sub">Teclado de símbolos, bloc para tablas y trazas, y constructor de árboles — para practicar sin papel. Todo local, sin internet.</p>
+
+  <div class="card">
+    <h2>Teclado de símbolos</h2>
+    <div class="tabs" id="tabs"></div>
+    <div class="keys" id="keys"></div>
+    <p class="hint">Los símbolos se insertan donde tengas el cursor (en el bloc o en el campo del árbol, el último que hayas tocado).</p>
+  </div>
+
+  <div class="card">
+    <h2>Bloc monoespaciado — tablas SLR, trazas, polaca, tercetos</h2>
+    <textarea id="pad" rows="12" placeholder="Usá este bloc con fuente monoespaciada para alinear columnas de una tabla SLR, una traza pila/entrada/acción, una polaca numerada o una lista de tercetos."></textarea>
+    <div class="toolbar">
+      <button onclick="tpl('slr')">plantilla tabla SLR</button>
+      <button onclick="tpl('traza')">plantilla traza LR</button>
+      <button onclick="tpl('tercetos')">plantilla tercetos</button>
+      <button onclick="tpl('asm')">esqueleto Assembler</button>
+      <button onclick="tpl('fs')">primeros/siguientes</button>
+      <button onclick="copyPad()">copiar</button>
+      <button onclick="document.getElementById('pad').value=''">limpiar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Constructor de árbol de derivación</h2>
+    <div class="row">
+      <label class="fld">notación:</label>
+      <input type="text" id="treein" value=":=(id1, +(*(id2, cte1), cte2))">
+      <button onclick="drawTree()">dibujar</button>
+    </div>
+    <p class="hint">Escribí <code>nodo(hijo, hijo)</code>. Las hojas son etiquetas sueltas. Ej.: <code>+(  *(a, b), c )</code>.
+      Probá: <span class="ej" onclick="setTree('E(E(T(F(id))), +, T(T(F(id)), *, F(cte)))')">árbol de parsing</span>
+      <span class="ej" onclick="setTree(':=(id1, +(*(id2, cte1), cte2))')">árbol sintáctico</span>
+      <span class="ej" onclick="setTree('if(cond(a,&lt;,3), asig(b, +(c,1)))')">selección</span>
+    </div>
+    <div class="treebox" id="treebox"></div>
+  </div>
+</div>
+
+<script>
+var active=null;
+var pad=document.getElementById('pad'), treein=document.getElementById('treein');
+pad.addEventListener('focus',function(){active=pad;});
+treein.addEventListener('focus',function(){active=treein;});
+active=pad;
+
+function insert(t){
+  var el=active||pad; el.focus();
+  var s=el.selectionStart, e=el.selectionEnd, v=el.value;
+  el.value=v.slice(0,s)+t+v.slice(e);
+  var p=s+t.length; el.selectionStart=el.selectionEnd=p;
+}
+
+var CATS={
+  "Gramáticas":["→","⇒","ε","λ","|","·","$","⊢","⟨","⟩","α","β","γ","δ","S′","A′","₀","₁","₂","₃","₄"],
+  "SLR / ítems":["•","D","R","G","acc","→","·","$","d","r","[","]","conflicto"],
+  "GCI · polaca · tercetos":[":=","[","]","(",")",",","@","@aux","←","*","+","−","/","BF","BI","CMP","pol","terc"],
+  "Coprocesador":["FLD","FILD","FST","FSTP","FADD","FSUB","FMUL","FDIV","FCOMP","FSTSW AX","SAHF","FFREE","ST(0)","ST(1)","dd","_cte"]
+};
+var MAP={"terc":"[  ] (  ,  ,  )","pol":"","conflicto":"⚠conflicto D/R","_cte":"_25 dd 25"};
+var cats=Object.keys(CATS), cur=0;
+function buildTabs(){
+  var t=document.getElementById('tabs'); t.innerHTML='';
+  cats.forEach(function(c,i){
+    var b=document.createElement('button'); b.className='tab'+(i===cur?' on':''); b.textContent=c;
+    b.onclick=function(){cur=i;buildTabs();buildKeys();}; t.appendChild(b);
+  });
+}
+function buildKeys(){
+  var k=document.getElementById('keys'); k.innerHTML='';
+  CATS[cats[cur]].forEach(function(s){
+    var b=document.createElement('button'); b.className='sym'; b.textContent=s;
+    b.onclick=function(){insert(MAP[s]!==undefined?MAP[s]:s);};
+    k.appendChild(b);
+  });
+}
+buildTabs(); buildKeys();
+
+var TPL={
+  slr:"       | id  cte  +   *   :=  $  | E   T   F\n"+
+      "-------+-----------------------+-----------\n"+
+      "  0    |                       |\n"+
+      "  1    |                       |\n"+
+      "  2    |                       |\n",
+  traza:"PILA                | ENTRADA              | ACCION\n"+
+        "--------------------+----------------------+--------\n"+
+        "0                   | id1 := id2 * ... $   | \n"+
+        "                    |                      | \n",
+  tercetos:"[11] (          ,        ,        )\n"+
+           "[12] (          ,        ,        )\n"+
+           "[13] (          ,        ,        )\n",
+  asm:".MODEL LARGE\n.386\n.STACK 200h\n.DATA\n    @aux1 dd ?\n    _cte  dd ?\n.CODE\n    MOV AX, @DATA\n    MOV DS, AX\n    MOV ES, AX\n    \n    FFREE\n    MOV AX, 4C00H\n    INT 21H\nEND\n",
+  fs:"No terminal | PRIMERO         | SIGUIENTE\n"+
+     "------------+-----------------+-----------------\n"+
+     "            |                 |\n"
+};
+function tpl(k){ insertPad(TPL[k]); }
+function insertPad(t){ active=pad; pad.focus(); var s=pad.selectionStart,e=pad.selectionEnd,v=pad.value; pad.value=v.slice(0,s)+t+v.slice(e); var p=s+t.length; pad.selectionStart=pad.selectionEnd=p; }
+function copyPad(){ pad.select(); try{document.execCommand('copy');}catch(e){} }
+
+function setTree(s){ treein.value=s.replace(/&lt;/g,'<').replace(/&gt;/g,'>'); drawTree(); }
+
+function parseTree(s){
+  var i=0;
+  function node(){
+    while(i<s.length && /\s/.test(s[i]))i++;
+    var lab='';
+    while(i<s.length && '(),'.indexOf(s[i])<0){ lab+=s[i++]; }
+    lab=lab.trim();
+    var n={label:lab||'·',children:[]};
+    while(i<s.length && /\s/.test(s[i]))i++;
+    if(s[i]==='('){
+      i++;
+      while(true){
+        n.children.push(node());
+        while(i<s.length && /\s/.test(s[i]))i++;
+        if(s[i]===','){i++;continue;}
+        if(s[i]===')'){i++;break;}
+        if(i>=s.length)break;
+      }
+    }
+    return n;
+  }
+  return node();
+}
+function drawTree(){
+  var box=document.getElementById('treebox');
+  var root;
+  try{ root=parseTree(treein.value); }catch(e){ box.innerHTML='<p style="padding:12px;color:var(--text-muted)">No pude leer la notación. Revisá los paréntesis.</p>'; return; }
+  var leaf=0, maxD=0;
+  (function lay(n,d){ n.d=d; maxD=Math.max(maxD,d);
+    if(!n.children.length){ n.x=leaf++; }
+    else { n.children.forEach(function(c){lay(c,d+1);}); n.x=(n.children[0].x+n.children[n.children.length-1].x)/2; }
+  })(root,0);
+  var gx=76, gy=72, mx=34, my=28;
+  var W=Math.max(leaf,1)*gx, H=(maxD+1)*gy;
+  var edges='', nodes='';
+  (function draw(n){
+    var x=mx+n.x*gx, y=my+n.d*gy;
+    n.px=x; n.py=y;
+    n.children.forEach(function(c){
+      var cx=mx+c.x*gx, cy=my+c.d*gy;
+      edges+='<line x1="'+x+'" y1="'+(y+8)+'" x2="'+cx+'" y2="'+(cy-14)+'" stroke="var(--border-strong)" stroke-width="1"/>';
+      draw(c);
+    });
+    var w=Math.max(26, n.label.length*8.5+14);
+    var leafNode=!n.children.length;
+    nodes+='<g>'+
+      '<rect x="'+(x-w/2)+'" y="'+(y-14)+'" width="'+w+'" height="26" rx="6" '+
+      'fill="'+(leafNode?'var(--bg-accent)':'var(--surface-2)')+'" stroke="'+(leafNode?'var(--text-accent)':'var(--border-strong)')+'" stroke-width="1"/>'+
+      '<text x="'+x+'" y="'+(y+4)+'" text-anchor="middle" font-size="13" fill="'+(leafNode?'var(--text-accent)':'var(--text-primary)')+'">'+esc(n.label)+'</text></g>';
+  })(root);
+  box.innerHTML='<svg viewBox="0 0 '+(W+mx)+' '+(H+my)+'" width="'+(W+mx)+'" height="'+(H+my)+'" xmlns="http://www.w3.org/2000/svg">'+edges+nodes+'</svg>';
+}
+function esc(s){return (s+'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+drawTree();
+</script>
+</body>
+</html>
