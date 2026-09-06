@@ -201,8 +201,11 @@
     <div class="search"><input id="q" type="search" placeholder="Buscar en el curso…" autocomplete="off"></div>
     <div class="navlink" data-go="#/inicio">Inicio</div>
     <div class="navlink" data-go="#/ejercitar">Ejercitación</div>
+    <div class="navlink" data-go="#/sandbox">Sandbox validable</div>
     <div class="navlink" data-go="#/mesa">Mesa de trabajo</div>
-    <div class="navlink" data-go="#/practica">Banco de práctica</div>
+    <div class="navlink" data-go="#/transcripciones">Transcripciones</div>
+    <div class="navlink" data-go="#/practicas">Enunciados de práctica</div>
+    <div class="navlink" data-go="#/practica">Banco de preguntas</div>
     <nav id="toc"></nav>
     <div style="padding:16px 20px 4px">
       <button class="iconbtn" id="theme" style="width:100%">Cambiar tema</button>
@@ -219,6 +222,8 @@
 </div>
 
 <script src="data.js"></script>
+<script src="transcripciones.js"></script>
+<script src="enunciados.js"></script>
 <script>
 (function(){
   const CURSO = window.CURSO || {modulos:[]};
@@ -478,14 +483,68 @@
       <iframe class="toolframe" src="tools/mesa-de-trabajo.html" title="Mesa de trabajo"></iframe>`;
     scrollTop();
   }
+  function renderSandbox(){
+    setActive(null);
+    main.innerHTML=`<div class="crumbs">Herramienta · autoevaluación</div><h2 class="title">Sandbox validable</h2>
+      <p style="color:var(--text-secondary)">Escribí tu respuesta en la notación del parcial (expresiones regulares, acciones léxicas, gramáticas) y la valido de verdad contra ejemplos que aceptan y rechazan. <a href="tools/sandbox.html" target="_blank" rel="noopener">abrir en pestaña completa ↗</a></p>
+      <iframe class="toolframe" src="tools/sandbox.html" title="Sandbox validable" style="min-height:1100px"></iframe>`;
+    scrollTop();
+  }
+  function hlt(s,f){ if(!f) return esc(s); const i=s.toLowerCase().indexOf(f.toLowerCase()); if(i<0) return esc(s); return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+f.length))+'</mark>'+esc(s.slice(i+f.length)); }
+  function renderTranscripciones(id){
+    setActive(null);
+    const T=window.TRANSCRIPCIONES||[];
+    if(!id){
+      let h=`<div class="crumbs">Material de clase</div><h2 class="title">Transcripciones de clases</h2>
+        <p style="color:var(--text-secondary)">Las clases grabadas y transcriptas, divididas en párrafos y con buscador. Complemento en las palabras del profesor a la teoría de cada módulo.</p>`;
+      T.forEach(t=>{ h+=`<div class="modcard" data-id="${t.id}"><h4>${esc(t.titulo)}</h4><p>${esc(t.tag)} · ${t.parrafos.length} párrafos</p></div>`; });
+      if(!T.length) h+=`<p style="color:var(--text-muted)">No hay transcripciones cargadas.</p>`;
+      main.innerHTML=h; main.querySelectorAll('.modcard').forEach(c=>c.onclick=()=>location.hash='#/transcripciones/'+c.dataset.id);
+      scrollTop(); return;
+    }
+    const t=T.find(x=>x.id===id); if(!t){ renderTranscripciones(); return; }
+    main.innerHTML=`<div class="crumbs"><a href="#/transcripciones">Transcripciones</a> · ${esc(t.tag)}</div>
+      <h2 class="title">${esc(t.titulo)}</h2>
+      <input id="tq" type="search" placeholder="buscar en esta clase…" style="width:100%;height:36px;padding:0 12px;border:.5px solid var(--border-strong);border-radius:8px;background:var(--surface-2);color:var(--text-primary);font-family:inherit;font-size:14px;margin-bottom:16px">
+      <div id="tbody" style="font-size:15.5px;line-height:1.75"></div>`;
+    const body=document.getElementById('tbody');
+    function paint(f){ const ff=(f||'').trim();
+      const ps=t.parrafos.filter(p=>!ff||p.toLowerCase().indexOf(ff.toLowerCase())>=0);
+      body.innerHTML = ps.length? ps.map(p=>`<p style="margin:.7rem 0">${hlt(p,ff)}</p>`).join('') : '<p style="color:var(--text-muted)">Sin coincidencias.</p>';
+    }
+    document.getElementById('tq').addEventListener('input',e=>paint(e.target.value));
+    paint(''); scrollTop();
+  }
+  function renderPracticas(id){
+    setActive(null);
+    const E=window.ENUNCIADOS||[];
+    if(!id){
+      let h=`<div class="crumbs">Ejercitación · consignas oficiales</div><h2 class="title">Enunciados de práctica</h2>
+        <p style="color:var(--text-secondary)">Las 6 prácticas de la cátedra. Las de expresiones regulares y gramáticas las podés resolver y autovalidar en el <a href="#/sandbox">Sandbox validable</a>.</p>`;
+      E.forEach(e=>{ h+=`<div class="modcard" data-id="${e.id}"><h4>${esc(e.titulo)}</h4><p>${esc(e.tag)}</p></div>`; });
+      if(!E.length) h+=`<p style="color:var(--text-muted)">No hay enunciados cargados.</p>`;
+      main.innerHTML=h; main.querySelectorAll('.modcard').forEach(c=>c.onclick=()=>location.hash='#/practicas/'+c.dataset.id);
+      scrollTop(); return;
+    }
+    const e=E.find(x=>x.id===id); if(!e){ renderPracticas(); return; }
+    const linkSandbox=(e.id==='p1'||e.id==='p2')?`<div class="ejtools" style="margin-bottom:14px">Practicá estos ejercicios con validación automática en el <a href="#/sandbox">Sandbox</a>.</div>`:'';
+    main.innerHTML=`<div class="crumbs"><a href="#/practicas">Enunciados</a> · ${esc(e.tag)}</div><h2 class="title">${esc(e.titulo)}</h2>${linkSandbox}
+      <pre style="white-space:pre-wrap;font-family:var(--font-mono);font-size:13px;line-height:1.6;background:var(--surface-1);border:.5px solid var(--border);border-radius:8px;padding:14px 16px;overflow-x:auto">${esc(e.lineas.join('\n'))}</pre>`;
+    scrollTop();
+  }
 
   function route(){
     const hash=location.hash||'#/inicio';
     if(hash.startsWith('#/l/')) renderLesson(decodeURIComponent(hash.slice(4)));
     else if(hash.startsWith('#/buscar/')) renderSearch(decodeURIComponent(hash.slice(9)));
-    else if(hash.startsWith('#/practica')) renderPractica();
     else if(hash.startsWith('#/ejercitar')) renderEjercitar(true);
+    else if(hash.startsWith('#/sandbox')) renderSandbox();
     else if(hash.startsWith('#/mesa')) renderMesa();
+    else if(hash.startsWith('#/transcripciones/')) renderTranscripciones(decodeURIComponent(hash.slice(18)));
+    else if(hash.startsWith('#/transcripciones')) renderTranscripciones();
+    else if(hash.startsWith('#/practicas/')) renderPracticas(decodeURIComponent(hash.slice(12)));
+    else if(hash.startsWith('#/practicas')) renderPracticas();
+    else if(hash.startsWith('#/practica')) renderPractica();
     else renderHome();
   }
   window.addEventListener('hashchange',route);

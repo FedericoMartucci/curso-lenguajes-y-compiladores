@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sandbox de práctica — LyC</title>
+<style>
+  :root{
+    --surface-0:#faf9f5; --surface-1:#f1efe8; --surface-2:#ffffff;
+    --text-primary:#1a1a18; --text-secondary:#5f5e5a; --text-muted:#8a8880;
+    --border:#e2e0d8; --border-strong:#c8c6bd;
+    --text-accent:#2c5aa0; --bg-accent:#e6f0fb; --radius:8px;
+    --ok:#3b6d11; --okbg:#eaf3de; --bad:#a32d2d; --badbg:#fcebeb; --warn:#854f0b;
+    --font-mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --font-sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --surface-0:#1a1a18; --surface-1:#242422; --surface-2:#2e2e2b;
+      --text-primary:#ecebe6; --text-secondary:#a8a7a0; --text-muted:#6f6e69;
+      --border:#3a3a37; --border-strong:#4a4a46;
+      --text-accent:#9db8e8; --bg-accent:#22304a;
+      --ok:#97c459; --okbg:#22331a; --bad:#f09595; --badbg:#3a1f1f; --warn:#ef9f27;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:18px;background:var(--surface-0);color:var(--text-primary);font-family:var(--font-sans);font-size:15px;line-height:1.5}
+  h1{font-size:19px;font-weight:500;margin:0 0 2px}
+  .sub{font-size:13px;color:var(--text-muted);margin:0 0 16px}
+  .wrap{max-width:900px;margin:0 auto}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+  .tab{font-size:13px;padding:7px 14px;border-radius:20px;border:.5px solid var(--border-strong);background:transparent;color:var(--text-secondary);cursor:pointer;font-family:inherit}
+  .tab.on{background:var(--text-accent);color:#fff;border-color:var(--text-accent)}
+  .card{background:var(--surface-2);border:.5px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+  label.fld{font-size:12px;color:var(--text-muted);display:block;margin:10px 0 4px}
+  select,input[type=text],input[type=number],textarea{width:100%;background:var(--surface-1);color:var(--text-primary);border:.5px solid var(--border-strong);border-radius:6px;padding:8px 10px;font-family:var(--font-mono);font-size:13px;line-height:1.5}
+  select{font-family:var(--font-sans)}
+  textarea{resize:vertical}
+  button{font-family:inherit;background:transparent;border:.5px solid var(--border-strong);color:var(--text-primary);border-radius:6px;padding:8px 14px;cursor:pointer;font-size:13px}
+  button.pri{background:var(--text-accent);color:#fff;border-color:var(--text-accent)}
+  button:hover{filter:brightness(1.05)}
+  .consigna{background:var(--bg-accent);border-radius:8px;padding:10px 14px;font-size:14px;margin:2px 0 6px;color:var(--text-primary)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-top:8px}
+  .row > div{flex:1;min-width:120px}
+  .res{margin-top:14px}
+  .case{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;font-family:var(--font-mono);font-size:13px;margin:4px 0}
+  .case .ico{font-weight:700;width:16px;text-align:center}
+  .case.pass{background:var(--okbg);color:var(--ok)}
+  .case.fail{background:var(--badbg);color:var(--bad)}
+  .case .exp{margin-left:auto;font-size:11px;opacity:.8}
+  .verdict{font-size:15px;font-weight:500;padding:10px 14px;border-radius:8px;margin:10px 0}
+  .verdict.ok{background:var(--okbg);color:var(--ok)}
+  .verdict.bad{background:var(--badbg);color:var(--bad)}
+  .err{color:var(--bad);font-family:var(--font-mono);font-size:12px;margin-top:6px}
+  .modelo{margin-top:12px;border-top:.5px solid var(--border);padding-top:10px}
+  .modelo pre{background:var(--surface-1);border-radius:6px;padding:10px 12px;font-family:var(--font-mono);font-size:13px;overflow-x:auto;margin:6px 0}
+  .hint{font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.5}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:var(--surface-1);border:.5px solid var(--border);color:var(--text-secondary);margin-left:6px}
+  .keys{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+  .keys button{padding:3px 8px;font-family:var(--font-mono);font-size:13px;min-width:30px}
+  code{font-family:var(--font-mono);background:var(--surface-1);padding:1px 4px;border-radius:4px;font-size:.92em}
+  details{margin-top:8px}summary{cursor:pointer;font-size:13px;color:var(--text-accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Sandbox de práctica</h1>
+  <p class="sub">Escribís tu respuesta en la notación de la cátedra y la <b>valido de verdad</b>: la corro contra ejemplos que deben aceptarse y otros que deben rechazarse. Estilo parcial, no flex/bison. Todo local.</p>
+
+  <div class="tabs">
+    <button class="tab on" data-t="er">Expresiones regulares</button>
+    <button class="tab" data-t="al">Acciones léxicas</button>
+    <button class="tab" data-t="glc">Gramáticas (GLC)</button>
+  </div>
+
+  <div id="panel"></div>
+</div>
+
+<script>
+/* ================= MOTOR: compilar ER de la cátedra a RegExp ================= */
+function escapeRe(s){ return s.replace(/[.*+?^${}()|[\]\\/]/g,'\\$&'); }
+function parseConjuntos(text){
+  const defs={};
+  (text||'').split(/\n/).forEach(line=>{
+    line=line.trim(); if(!line) return;
+    const m=line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s+(.+)$/);
+    if(m) defs[m[1]]=m[2].trim();
+  });
+  return defs;
+}
+function erToRegex(expr, defs){
+  let guard=0;
+  function compile(s){
+    let r='', j=0;
+    while(j<s.length){
+      const c=s[j];
+      if(/\s/.test(c)){ j++; continue; }
+      if(c==='{'){
+        const k=s.indexOf('}', j); if(k<0) throw new Error('Falta cerrar "}"');
+        const name=s.slice(j+1,k).trim();
+        if(!(name in defs)) throw new Error('Conjunto no definido: {'+name+'}');
+        if(++guard>2000) throw new Error('Referencia circular entre conjuntos');
+        r+='(?:'+compile(defs[name])+')'; j=k+1;
+      } else if(c==='"'||c==='“'||c==='”'){
+        let k=j+1, lit='';
+        while(k<s.length && !(s[k]==='"'||s[k]==='“'||s[k]==='”')){ lit+=s[k]; k++; }
+        if(k>=s.length) throw new Error('Falta cerrar la comilla del literal');
+        r+=escapeRe(lit); j=k+1;
+      } else if(c==='['){
+        const k=s.indexOf(']', j); if(k<0) throw new Error('Falta cerrar "]"');
+        r+=s.slice(j,k+1); j=k+1;
+      } else if('*+?|()'.indexOf(c)>=0){ r+=c; j++; }
+      else { r+=escapeRe(c); j++; }
+    }
+    return r;
+  }
+  return compile(expr);
+}
+function buildRegex(expr, defs){
+  const src=erToRegex(expr, defs);
+  return new RegExp('^(?:'+src+')$');
+}
+function attrValue(atr, lexema){
+  if(atr==='valor'){ const n=parseFloat(lexema); return isNaN(n)?null:n; }
+  if(atr==='valor_abs'){ const n=parseFloat(lexema); return isNaN(n)?null:Math.abs(n); }
+  if(atr==='longitud') return lexema.length;
+  if(atr==='longitud_sin_comillas'){
+    let s=lexema; if(s.length>=2 && /["“]/.test(s[0]) && /["”]/.test(s[s.length-1])) s=s.slice(1,-1);
+    return s.length;
+  }
+  return null;
+}
+function cmp(a,op,b){ if(a===null) return false; switch(op){case '<=':return a<=b;case '<':return a<b;case '==':return a===b;case '>=':return a>=b;case '>':return a>b;} return false; }
+
+/* ================= MOTOR: reconocedor Earley para GLC ================= */
+function parseGrammar(text){
+  const rules=[]; const nts=new Set(); let start=null;
+  (text||'').split(/\n/).forEach(line=>{
+    line=line.trim(); if(!line||line.startsWith('#')||line.startsWith('//')) return;
+    const parts=line.split(/->|→|::=/);
+    if(parts.length<2) return;
+    const lhs=parts[0].trim(); if(!lhs) return;
+    nts.add(lhs); if(start===null) start=lhs;
+    parts.slice(1).join('->').split('|').forEach(alt=>{
+      let syms=alt.trim().split(/\s+/).filter(x=>x.length);
+      if(syms.length===1 && /^(ε|lambda|epsilon|λ|vacio|vacío|e)$/i.test(syms[0])) syms=[];
+      rules.push({lhs, rhs:syms});
+    });
+  });
+  return {rules, nts, start};
+}
+function earleyAccepts(g, input){
+  if(!g.start) throw new Error('Gramática vacía');
+  const n=input.length;
+  const chart=[]; for(let i=0;i<=n;i++) chart.push([]);
+  const key=it=>it.lhs+'|'+it.rhs.join(' ')+'|'+it.dot+'|'+it.start;
+  const seen=[]; for(let i=0;i<=n;i++) seen.push(new Set());
+  function add(i,it){ const k=key(it); if(seen[i].has(k)) return; seen[i].add(k); chart[i].push(it); }
+  g.rules.filter(r=>r.lhs===g.start).forEach(r=>add(0,{lhs:r.lhs,rhs:r.rhs,dot:0,start:0}));
+  for(let i=0;i<=n;i++){
+    for(let x=0;x<chart[i].length;x++){
+      const it=chart[i][x];
+      if(it.dot<it.rhs.length){
+        const sym=it.rhs[it.dot];
+        if(g.nts.has(sym)){
+          g.rules.filter(r=>r.lhs===sym).forEach(r=>add(i,{lhs:r.lhs,rhs:r.rhs,dot:0,start:i}));
+          // completar nullable ya reconocido
+          chart[i].forEach(jt=>{ if(jt.start===i && jt.lhs===sym && jt.dot===jt.rhs.length) add(i,{lhs:it.lhs,rhs:it.rhs,dot:it.dot+1,start:it.start}); });
+        } else if(i<n && input[i]===sym){
+          add(i+1,{lhs:it.lhs,rhs:it.rhs,dot:it.dot+1,start:it.start});
+        }
+      } else {
+        chart[it.start].forEach(jt=>{ if(jt.dot<jt.rhs.length && jt.rhs[jt.dot]===it.lhs) add(i,{lhs:jt.lhs,rhs:jt.rhs,dot:jt.dot+1,start:jt.start}); });
+      }
+    }
+  }
+  return chart[n].some(it=>it.lhs===g.start && it.dot===it.rhs.length && it.start===0);
+}
+function tokenize(s){ return (s||'').trim().split(/\s+/).filter(x=>x.length); }
+
+/* ================= BANCO DE EJERCICIOS ================= */
+const ER_EJ=[
+ {id:'cp',t:'Códigos postales',c:'Cuatro dígitos; el primero no puede ser cero. Ej.: 1234, 8366 — pero no 422 ni 0027.',
+  cj:'DIGITO   [0-9]\nDIGITO1  [1-9]', m:'{DIGITO1}{DIGITO}{DIGITO}{DIGITO}',
+  ac:['1234','8366','9000','1000'], rc:['422','0027','12345','abcd']},
+ {id:'pat',t:'Patente Mercosur',c:'AA386NX (2 mayúsculas, 3 dígitos, 2 mayúsculas) o DMS109 (3 mayúsculas, 3 dígitos).',
+  cj:'DIGITO  [0-9]\nMAY     [A-Z]', m:'{MAY}{MAY}{DIGITO}{DIGITO}{DIGITO}{MAY}{MAY}|{MAY}{MAY}{MAY}{DIGITO}{DIGITO}{DIGITO}',
+  ac:['AA386NX','DMS109','ABC123'], rc:['A386NX','aa386nx','AA38NX','AA3861NX']},
+ {id:'com',t:'Comentario /* */',c:'Comentario acotado por /* y */, con solo letras adentro. Σ = {letras, *, /}.',
+  cj:'LETRA  [a-zA-Z]', m:'"/*"{LETRA}*"*/"',
+  ac:['/*hola*/','/**/','/*abc*/'], rc:['/*hola','hola*/','/*a*b*/','/*a1*/']},
+ {id:'id1',t:'Identificador con guiones',c:'Empieza con letra; contiene letras, dígitos o guiones; NO puede terminar con guión.',
+  cj:'DIGITO  [0-9]\nLETRA   [a-zA-Z]', m:'{LETRA}(({LETRA}|{DIGITO}|"-")*({LETRA}|{DIGITO}))?',
+  ac:['abc','a-b','a1-b2','x','a--b'], rc:['-abc','abc-','1abc','a-']},
+ {id:'id2',t:'Identificador sin guiones dobles',c:'Ídem anterior pero que NO contenga dos guiones seguidos.',
+  cj:'DIGITO  [0-9]\nLETRA   [a-zA-Z]', m:'{LETRA}("-"?({LETRA}|{DIGITO}))*',
+  ac:['a-b','a-b-c','abc','x'], rc:['a--b','a-','-a','a-b--c']},
+ {id:'real',t:'Constante real xx.xx',c:'Uno o más dígitos, punto, uno o más dígitos. Signo menos opcional al inicio.',
+  cj:'DIGITO  [0-9]', m:'"-"?{DIGITO}+"."{DIGITO}+',
+  ac:['12.34','-5.67','0.0','100.1'], rc:['12','12.','.34','12.3.4']},
+ {id:'str',t:'Constante string',c:'Texto entre comillas dobles, con letras o dígitos. Usá {COMILLA} para la comilla literal.',
+  cj:'DIGITO   [0-9]\nLETRA    [a-zA-Z]\nCOMILLA  ["]', m:'{COMILLA}({DIGITO}|{LETRA})*{COMILLA}',
+  ac:['"abc"','"a1b2"','""','"Hola"'], rc:['abc','"a b"','"a-b"','"abc']},
+ {id:'email',t:'Email (Práctica 1, ej. 2)',c:'Nombre: empieza con minúscula, sigue con minúsculas/dígitos/-/_. Sufijo opcional con "+" (letras/díg, no empieza con guión). Arroba. Dominio de: unlam.edu.ar, yahoo.com, yahoo.com.ar, gmail.com, hotmail.com.',
+  cj:'MIN  [a-z]\nDIG  [0-9]', m:'{MIN}({MIN}|{DIG}|"-"|"_")*("+"({MIN}|{DIG})({MIN}|{DIG}|"-")*)?"@"("unlam.edu.ar"|"yahoo.com"|"yahoo.com.ar"|"gmail.com"|"hotmail.com")',
+  ac:['lyc@hotmail.com','lyc+comision-2024@unlam.edu.ar','lyc+comision-2024@gmail.com'], rc:['Lyc@gmail.com','lyc@otro.com','@gmail.com','lyc+@gmail.com']},
+];
+
+const AL_EJ=[
+ {id:'int',t:'Constante entera con cota (Int de L1_aho)',c:'Constante entera sin signo. El valor máximo es 32767. La cota va en la ACCIÓN LÉXICA, no en la expresión regular.',
+  cj:'DIGITO  [0-9]', mER:'{DIGITO}+', atr:'valor', op:'<=', cota:32767,
+  tests:[{v:'100',ok:true},{v:'32767',ok:true},{v:'0',ok:true},{v:'32768',ok:false,por:'cota'},{v:'99999',ok:false,por:'cota'},{v:'12a',ok:false,por:'ER'}]},
+ {id:'str50',t:'String con longitud ≤ 50 (L1_aho)',c:'String entre comillas. Longitud del contenido (sin las comillas) ≤ 50. La cota va en la acción léxica.',
+  cj:'LETRA    [a-zA-Z]\nDIGITO   [0-9]\nCOMILLA  ["]', mER:'{COMILLA}({LETRA}|{DIGITO})*{COMILLA}', atr:'longitud_sin_comillas', op:'<=', cota:50,
+  tests:[{v:'"hola"',ok:true},{v:'""',ok:true},{v:'"'+'a'.repeat(50)+'"',ok:true},{v:'"'+'a'.repeat(51)+'"',ok:false,por:'cota'},{v:'hola',ok:false,por:'ER'}]},
+ {id:'real',t:'Real en rango −64556..64556 (Práctica 1)',c:'Constante real xx.xx (signo opcional). El valor debe estar entre −64556 y 64556. El rango va en la acción léxica.',
+  cj:'DIGITO  [0-9]', mER:'"-"?{DIGITO}+"."{DIGITO}+', atr:'valor_abs', op:'<=', cota:64556,
+  tests:[{v:'12.34',ok:true},{v:'-64556.0',ok:true},{v:'64557.0',ok:false,por:'cota'},{v:'-70000.5',ok:false,por:'cota'},{v:'12',ok:false,por:'ER'}]},
+ {id:'cp4',t:'Código postal por longitud',c:'Escribí la ER como “primer dígito no-cero seguido de uno o más dígitos” y controlá en la acción que la longitud sea exactamente 4.',
+  cj:'DIGITO   [0-9]\nDIGITO1  [1-9]', mER:'{DIGITO1}{DIGITO}+', atr:'longitud', op:'==', cota:4,
+  tests:[{v:'1234',ok:true},{v:'9000',ok:true},{v:'123',ok:false,por:'cota'},{v:'12345',ok:false,por:'cota'},{v:'0123',ok:false,por:'ER'}]},
+];
+
+const GLC_EJ=[
+ {id:'par',t:'Paréntesis balanceados',c:'Gramática que genere secuencias de paréntesis balanceados, incluida la cadena vacía.',
+  m:'S -> ( S ) S | ε', ac:['','( )','( ( ) )','( ) ( )'], rc:['(','( (','( ) )',') (']},
+ {id:'lista',t:'Lista de identificadores',c:'Uno o más id separados por coma. Ej.: id , id , id.',
+  m:'L -> L , id | id', ac:['id','id , id','id , id , id'], rc:[', id','id ,','id id']},
+ {id:'expr',t:'Expresiones con + y *',c:'Expresiones aritméticas con + y *, operandos id y paréntesis, respetando precedencia y sin ambigüedad.',
+  m:'E -> E + T | T\nT -> T * F | F\nF -> id | ( E )', ac:['id','id + id','id + id * id','( id + id ) * id'], rc:['id +','+ id','id id','( id']},
+ {id:'asig',t:'Asignación (gramática canónica)',c:'A → id := E, con E sumas de T y T productos de F, F es id o cte. La gramática estrella de la cátedra.',
+  m:'A -> id := E\nE -> E + T | T\nT -> T * F | F\nF -> id | cte', ac:['id := id','id := id * cte + id','id := cte'], rc:['id id',':= id','id :=','A := id']},
+];
+
+/* ================= UI ================= */
+var panel=document.getElementById('panel');
+var TAB='er';
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  TAB=b.dataset.t; document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b)); render();
+});
+function esc(s){return (s+'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function showStr(s){ return s==='' ? '⟨vacío⟩' : esc(s); }
+
+var symKeys=['{','}','(',')','|','*','+','?','[',']','"','-','.','ε'];
+
+function render(){
+  if(TAB==='er') renderER();
+  else if(TAB==='al') renderAL();
+  else renderGLC();
+}
+
+/* ---- ER ---- */
+function renderER(){
+  let opts=ER_EJ.map((e,i)=>`<option value="${i}">${esc(e.t)}</option>`).join('');
+  panel.innerHTML=`<div class="card">
+    <label class="fld">Ejercicio</label>
+    <select id="ex">${opts}</select>
+    <div class="consigna" id="cons"></div>
+    <label class="fld">Conjuntos (uno por línea: NOMBRE  definición)</label>
+    <textarea id="cj" rows="3"></textarea>
+    <label class="fld">Expresión regular del token</label>
+    <input type="text" id="er" placeholder="Ej: {DIGITO1}{DIGITO}{DIGITO}{DIGITO}">
+    <div class="keys" id="keys"></div>
+    <div class="row" style="margin-top:12px"><div style="flex:0"><button class="pri" id="val">Validar</button></div>
+      <div style="flex:1"><input type="text" id="own" placeholder="probar una cadena propia (opcional)"></div>
+      <div style="flex:0"><button id="valown">probar</button></div></div>
+    <div class="res" id="res"></div>
+    <details><summary>Ver respuesta modelo</summary><div class="modelo" id="mod"></div></details>
+    <p class="hint">Notación: <code>{NOMBRE}</code> referencia un conjunto · <code>[0-9]</code> clase · <code>"texto"</code> literal exacto · operadores <code>* + ? | ( )</code> · la concatenación es escribir seguido. Los espacios se ignoran.</p>
+  </div>`;
+  const sel=document.getElementById('ex');
+  function load(){ const e=ER_EJ[+sel.value];
+    document.getElementById('cons').innerHTML=esc(e.c);
+    document.getElementById('cj').value=e.cj;
+    document.getElementById('er').value='';
+    document.getElementById('res').innerHTML='';
+    document.getElementById('own').value='';
+    document.getElementById('mod').innerHTML=`<p>Una solución válida:</p><pre>CONJUNTO\n${esc(e.cj)}\n\nTOKEN     EXP. REG.\n${esc(e.t.split(' ')[0].toUpperCase())}      ${esc(e.m)}</pre>
+      <p class="hint">Puede haber varias ER equivalentes correctas — lo que importa es que acepte y rechace lo que corresponde.</p>`;
+  }
+  sel.onchange=load; load();
+  document.getElementById('keys').innerHTML=symKeys.map(k=>`<button data-k="${esc(k)}">${esc(k)}</button>`).join('');
+  document.querySelectorAll('#keys button').forEach(b=>b.onclick=()=>insertAt(document.getElementById('er'),b.dataset.k));
+  document.getElementById('val').onclick=()=>validateER(false);
+  document.getElementById('valown').onclick=()=>validateER(true);
+}
+function validateER(withOwn){
+  const e=ER_EJ[+document.getElementById('ex').value];
+  const defs=parseConjuntos(document.getElementById('cj').value);
+  const expr=document.getElementById('er').value.trim();
+  const res=document.getElementById('res');
+  if(!expr){ res.innerHTML=`<div class="err">Escribí una expresión regular.</div>`; return; }
+  let rx;
+  try{ rx=buildRegex(expr, defs); }
+  catch(err){ res.innerHTML=`<div class="err">Error al compilar: ${esc(err.message)}</div>`; return; }
+  let html='', allOk=true;
+  e.ac.forEach(s=>{ const m=rx.test(s); if(!m)allOk=false; html+=caseRow(s,m,true); });
+  e.rc.forEach(s=>{ const m=rx.test(s); if(m)allOk=false; html+=caseRow(s,m,false); });
+  if(withOwn){ const o=document.getElementById('own').value; if(o!==''){ const m=rx.test(o); html+=`<div class="case ${m?'pass':'fail'}"><span class="ico">${m?'✓':'✗'}</span><span>${showStr(o)}</span><span class="exp">${m?'la acepta':'la rechaza'}</span></div>`; } }
+  res.innerHTML=`<div class="verdict ${allOk?'ok':'bad'}">${allOk?'✓ ¡Correcta! Acepta y rechaza todo lo esperado.':'✗ Todavía no: revisá los casos marcados en rojo.'}</div>`+html;
+}
+function caseRow(s,matched,shouldMatch){
+  const pass = matched===shouldMatch;
+  return `<div class="case ${pass?'pass':'fail'}"><span class="ico">${pass?'✓':'✗'}</span><span>${showStr(s)}</span><span class="exp">${shouldMatch?'debe aceptar':'debe rechazar'}${pass?'':(matched?' — la acepta':' — la rechaza')}</span></div>`;
+}
+
+/* ---- Acciones léxicas ---- */
+function renderAL(){
+  let opts=AL_EJ.map((e,i)=>`<option value="${i}">${esc(e.t)}</option>`).join('');
+  panel.innerHTML=`<div class="card">
+    <label class="fld">Ejercicio</label>
+    <select id="ex">${opts}</select>
+    <div class="consigna" id="cons"></div>
+    <label class="fld">Conjuntos</label>
+    <textarea id="cj" rows="3"></textarea>
+    <label class="fld">Expresión regular del token</label>
+    <input type="text" id="er">
+    <label class="fld">Acción léxica — condición que debe cumplir el lexema</label>
+    <div class="row">
+      <div><select id="atr">
+        <option value="valor">valor (numérico)</option>
+        <option value="valor_abs">valor absoluto</option>
+        <option value="longitud">longitud (caracteres)</option>
+        <option value="longitud_sin_comillas">longitud sin las comillas</option>
+      </select></div>
+      <div style="flex:0"><select id="op"><option>&lt;=</option><option>&lt;</option><option>==</option><option>&gt;=</option><option>&gt;</option></select></div>
+      <div><input type="number" id="cota" placeholder="cota"></div>
+    </div>
+    <div class="row" style="margin-top:12px"><div style="flex:0"><button class="pri" id="val">Validar</button></div></div>
+    <div class="res" id="res"></div>
+    <details><summary>Ver respuesta modelo</summary><div class="modelo" id="mod"></div></details>
+    <p class="hint">La idea del ejercicio: la <b>expresión regular</b> reconoce la forma; la <b>acción léxica</b> chequea la cota (rango o longitud). Un valor con forma válida pero fuera de cota se rechaza <b>en la acción</b>, en tiempo de compilación.</p>
+  </div>`;
+  const sel=document.getElementById('ex');
+  function load(){ const e=AL_EJ[+sel.value];
+    document.getElementById('cons').innerHTML=esc(e.c);
+    document.getElementById('cj').value=e.cj;
+    document.getElementById('er').value='';
+    document.getElementById('atr').value='valor';
+    document.getElementById('op').value='<=';
+    document.getElementById('cota').value='';
+    document.getElementById('res').innerHTML='';
+    const opTxt={'<=':'≤','<':'<','==':'=','>=':'≥','>':'>'}[e.op]||e.op;
+    const atrTxt={valor:'valor',valor_abs:'|valor|',longitud:'longitud',longitud_sin_comillas:'longitud (sin comillas)'}[e.atr];
+    document.getElementById('mod').innerHTML=`<p>ER: <code>${esc(e.mER)}</code></p><p>Acción léxica: aceptar si <b>${atrTxt} ${opTxt} ${e.cota}</b>; si no, error léxico (fuera de cota).</p>
+      <pre>{ if( ${atrTxt} ${opTxt} ${e.cota} ) return TOKEN;\n  else error("fuera de cota"); }</pre>`;
+  }
+  sel.onchange=load; load();
+  document.getElementById('val').onclick=validateAL;
+}
+function validateAL(){
+  const e=AL_EJ[+document.getElementById('ex').value];
+  const defs=parseConjuntos(document.getElementById('cj').value);
+  const expr=document.getElementById('er').value.trim();
+  const atr=document.getElementById('atr').value;
+  const op=document.getElementById('op').value.replace('&lt;','<').replace('&gt;','>');
+  const cotaRaw=document.getElementById('cota').value;
+  const res=document.getElementById('res');
+  if(!expr){ res.innerHTML=`<div class="err">Escribí la expresión regular.</div>`; return; }
+  if(cotaRaw===''){ res.innerHTML=`<div class="err">Indicá la cota.</div>`; return; }
+  const cota=parseFloat(cotaRaw);
+  let rx; try{ rx=buildRegex(expr, defs); }catch(err){ res.innerHTML=`<div class="err">Error al compilar la ER: ${esc(err.message)}</div>`; return; }
+  let html='', allOk=true;
+  e.tests.forEach(tc=>{
+    const formaOk=rx.test(tc.v);
+    const cotaOk=formaOk ? cmp(attrValue(atr,tc.v),op,cota) : false;
+    const acepta=formaOk && cotaOk;
+    const pass=acepta===tc.ok;
+    if(!pass)allOk=false;
+    const motivo = tc.ok ? 'debe aceptar' : ('debe rechazar'+(tc.por?' (por '+tc.por+')':''));
+    const got = acepta?'aceptado':(!formaOk?'rechazado por la ER':'rechazado por la cota');
+    html+=`<div class="case ${pass?'pass':'fail'}"><span class="ico">${pass?'✓':'✗'}</span><span>${showStr(tc.v.length>30?tc.v.slice(0,27)+'…':tc.v)}</span><span class="exp">${motivo} · ${got}</span></div>`;
+  });
+  res.innerHTML=`<div class="verdict ${allOk?'ok':'bad'}">${allOk?'✓ ¡Correcta! La ER más la acción léxica se comportan como se espera.':'✗ Todavía no: mirá los casos en rojo (¿la cota está en la acción y no en la ER?).'}</div>`+html;
+}
+
+/* ---- GLC ---- */
+function renderGLC(){
+  let opts=GLC_EJ.map((e,i)=>`<option value="${i}">${esc(e.t)}</option>`).join('');
+  panel.innerHTML=`<div class="card">
+    <label class="fld">Ejercicio</label>
+    <select id="ex">${opts}</select>
+    <div class="consigna" id="cons"></div>
+    <label class="fld">Gramática (una regla por línea: <code>NoTerminal -> símbolos | símbolos</code>. Usá ε para vacío. El primer no terminal es el símbolo distinguido.)</label>
+    <textarea id="gr" rows="6" placeholder="S -> ( S ) S | ε"></textarea>
+    <div id="sets"></div>
+    <div class="row" style="margin-top:12px"><div style="flex:0"><button class="pri" id="val">Validar</button></div>
+      <div style="flex:1"><input type="text" id="own" placeholder="probar una cadena propia (tokens separados por espacios)"></div>
+      <div style="flex:0"><button id="valown">probar</button></div></div>
+    <div class="res" id="res"></div>
+    <details><summary>Ver respuesta modelo</summary><div class="modelo" id="mod"></div></details>
+    <p class="hint">Los símbolos van separados por espacios. Todo símbolo que aparece a la izquierda de una regla es no terminal; el resto son terminales (id, cte, +, (, etc.). Se prueba con un reconocedor: acepta o no cada cadena.</p>
+  </div>`;
+  const sel=document.getElementById('ex');
+  function load(){ const e=GLC_EJ[+sel.value];
+    document.getElementById('cons').innerHTML=esc(e.c);
+    document.getElementById('gr').value='';
+    document.getElementById('own').value='';
+    document.getElementById('res').innerHTML='';
+    document.getElementById('sets').innerHTML=`<p class="hint" style="margin-top:10px">Debe <b>aceptar</b>: ${e.ac.map(s=>'<code>'+showStr(s)+'</code>').join(' ')}<br>Debe <b>rechazar</b>: ${e.rc.map(s=>'<code>'+showStr(s)+'</code>').join(' ')}</p>`;
+    document.getElementById('mod').innerHTML=`<p>Una gramática válida:</p><pre>${esc(e.m)}</pre>`;
+  }
+  sel.onchange=load; load();
+  document.getElementById('val').onclick=()=>validateGLC(false);
+  document.getElementById('valown').onclick=()=>validateGLC(true);
+}
+function validateGLC(withOwn){
+  const e=GLC_EJ[+document.getElementById('ex').value];
+  const res=document.getElementById('res');
+  let g; try{ g=parseGrammar(document.getElementById('gr').value); }catch(err){ res.innerHTML=`<div class="err">${esc(err.message)}</div>`; return; }
+  if(!g.start){ res.innerHTML=`<div class="err">Escribí al menos una regla (NoTerminal -> ...).</div>`; return; }
+  let html='', allOk=true;
+  function run(s, should){ let acc; try{ acc=earleyAccepts(g, tokenize(s)); }catch(err){ acc=false; } const pass=acc===should; if(!pass)allOk=false;
+    return `<div class="case ${pass?'pass':'fail'}"><span class="ico">${pass?'✓':'✗'}</span><span>${showStr(s)}</span><span class="exp">${should?'debe aceptar':'debe rechazar'}${pass?'':(acc?' — la acepta':' — la rechaza')}</span></div>`; }
+  e.ac.forEach(s=>html+=run(s,true));
+  e.rc.forEach(s=>html+=run(s,false));
+  if(withOwn){ const o=document.getElementById('own').value; if(o.trim()!==''||o===''){ let acc; try{acc=earleyAccepts(g,tokenize(o));}catch(e2){acc=false;} html+=`<div class="case ${acc?'pass':'fail'}"><span class="ico">${acc?'✓':'✗'}</span><span>${showStr(o)}</span><span class="exp">${acc?'la acepta':'la rechaza'}</span></div>`; } }
+  res.innerHTML=`<div class="verdict ${allOk?'ok':'bad'}">${allOk?'✓ ¡Correcta! Acepta y rechaza lo esperado.':'✗ Todavía no: revisá los casos en rojo.'}</div>`+html;
+}
+
+function insertAt(el,t){ el.focus(); const s=el.selectionStart,e=el.selectionEnd,v=el.value; el.value=v.slice(0,s)+t+v.slice(e); const p=s+t.length; el.selectionStart=el.selectionEnd=p; }
+
+render();
+</script>
+</body>
+</html>
