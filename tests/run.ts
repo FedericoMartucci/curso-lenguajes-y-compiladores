@@ -20,7 +20,9 @@ import { PARSING_EJ } from '../src/data/ejercicios/parsing.ts'
 import { GCI_EJ } from '../src/data/ejercicios/gci.ts'
 import { ASM_EJ } from '../src/data/ejercicios/asm.ts'
 import { parseGrammar } from '../src/engines/earley.ts'
-import { tablaSLR } from '../src/engines/parsing.ts'
+import {
+  tablaSLR, aumentar, reglasNumeradas, textoAccion, validarAumentada, validarTabla
+} from '../src/engines/parsing.ts'
 import { testIntermedia } from '../src/engines/polaca.ts'
 import { testArbol, parseArbol, postOrden } from '../src/engines/arbol.ts'
 import { testAssembler } from '../src/engines/coprocesador.ts'
@@ -66,7 +68,35 @@ PARSING_EJ.forEach((e) => {
     if (!g.start) throw new Error('gramática vacía')
     const t = tablaSLR(g)
     if (!t.estados.length) throw new Error('no se generaron estados')
-    casos += 1
+    if (!e.etapas.length) throw new Error('sin etapas declaradas')
+
+    // Cada etapa tiene que ser corregible: se le da al validador la respuesta que el propio
+    // motor calcula y tiene que darla por buena. Si no, la etapa está rota y el alumno no
+    // podría cerrarla nunca por más que la resuelva bien.
+    if (e.etapas.includes('aumentada')) {
+      const r = validarAumentada(reglasNumeradas(aumentar(g)).join('\n'), e.gramatica)
+      if (!r.ok) throw new Error('la gramática aumentada del motor no pasa su propio validador')
+      casos += r.filas.length
+    }
+    if (e.etapas.includes('tabla')) {
+      const noTerm = t.noTerminales.filter((A) => A !== t.gAumentada.start)
+      const celdas: Record<string, string> = {}
+      t.estados.forEach((_, i) => {
+        t.cols.forEach((s) => {
+          const a = t.accion[i]?.[s]
+          if (a?.length) celdas[`${i}:${s}`] = a.map(textoAccion).join('/')
+        })
+        noTerm.forEach((A) => {
+          const v = t.irA[i]?.[A]
+          if (v !== undefined) celdas[`${i}:${A}`] = String(v)
+        })
+      })
+      const r = validarTabla(celdas, e.gramatica)
+      if (!r.ok) throw new Error(`la tabla del motor no pasa su propio validador (${r.celdas.filter((c) => !c.pass).length} celdas)`)
+      // y la tabla vacía tiene que fallar: si no, el validador no exige nada
+      if (validarTabla({}, e.gramatica).ok) throw new Error('una tabla vacía pasa la validación')
+      casos += r.total
+    }
   } catch (err) { console.log(`  ✗ [SLR ${e.id}] ${err instanceof Error ? err.message : err}`); fails++ }
 })
 

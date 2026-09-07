@@ -48,6 +48,7 @@ src/ui/                    Primitivas: Boton, Pill, Campo, Progreso, Cargando, I
 src/componentes/           BarraLateral, PaletaComandos, Enlace, CodeEditor, Casos, Teclado.
 src/vistas/                Una por pantalla. sandbox/ tiene un panel por solapa.
 src/engines/               Lógica pura, sin React. Testeable desde node.
+TODO.md                    Lo postergado a propósito, con el porqué.
 src/estilos/               tokens, base, ui, shell, vistas. Un archivo por capa.
 src/data/                  Contenido generado y bancos de ejercicios.
 content/mod-00..15.js      FUENTE DE VERDAD de la teoría. Sigue en JS a propósito.
@@ -118,6 +119,10 @@ Todos exportan funciones puras y se pueden probar desde node sin navegador.
   no terminal = todo lo que aparece a la izquierda alguna vez, start = LHS de la primera regla.
 - **`parsing.ts`** — gramática aumentada, PRIMEROS/SIGUIENTES, ítems LR(0), CLOSURE/GOTO y tabla SLR
   con conflictos. `validarConjuntos()` corrige lo que carga el alumno.
+- **`arbol.ts`** — árbol sintáctico, la tercera notación. Padre, hijo izquierdo, hijo derecho.
+  In-orden reconstruye el programa; post-orden da la polaca. Sin saltos ni etiquetas: un `if` lleva
+  la condición a la izquierda y la acción a la derecha. Los nodos conectores (`M`) son dummy.
+  **Valida por ejecución**, igual que polaca y tercetos.
 - **`polaca.ts`** — intérprete de polaca inversa y de tercetos. **Valida por ejecución.**
   Convención: celdas separadas por espacios, **numeradas desde 1**; `BF` salta si es falso y `BI` es
   incondicional, con la **celda destino en la posición siguiente al salto**. Admite las dos
@@ -142,8 +147,8 @@ entrada en `meta.ts` y correr `npm test`. Campos por tipo:
 | ER | `er.ts` | `cj` (conjuntos), `m` (modelo), `ac`, `rc` |
 | Acciones léxicas | `lexicas.ts` | `cj`, `mER`, `atr`, `op`, `cota`, `tests:[{v, ok, por}]` |
 | Gramáticas | `glc.ts` | `m`, `ac`, `rc`, `nota` (opcional) |
-| Parsing | `parsing.ts` | `gramatica`, `pedir: primeros\|siguientes\|ambos\|conflictos` |
-| Código intermedio | `gci.ts` | `modo: polaca\|tercetos`, `programa`, `m`, `casos:[{inicial, esperado}]` |
+| Parsing | `parsing.ts` | `gramatica`, `etapas: (aumentada\|primeros\|siguientes\|tabla\|conflictos)[]` |
+| Código intermedio | `gci.ts` | `notaciones: (polaca\|tercetos\|arbol)[]`, `programa`, `m: {por notación}`, `casos` |
 | Assembler | `asm.ts` | `plantilla`, `m`, `casos:[{inicial, esperado}]` |
 
 En parsing **no se guarda la respuesta**: la calcula el motor, así siempre es consistente con la

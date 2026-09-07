@@ -77,12 +77,21 @@ export interface EjercicioGLC extends EjercicioBase {
 }
 
 /* ---------- Parsing SLR ---------- */
-export type PedidoParsing = 'primeros' | 'siguientes' | 'ambos' | 'conflictos'
+/* Las etapas en las que la cátedra descompone un ejercicio de parsing. El orden importa:
+   de la clase, "si cometen un error desde el armado del autómata, ese error se arrastra en
+   todo el ejercicio". Cada etapa se corrige contra lo que calcula el motor, así que el
+   alumno puede cerrar una antes de empezar la siguiente. */
+export type EtapaParsing =
+  | 'aumentada'    /* numerar las reglas y agregar el símbolo distinguido nuevo */
+  | 'primeros'
+  | 'siguientes'
+  | 'tabla'        /* llenar la tabla SLR celda por celda */
+  | 'conflictos'   /* decir si la gramática es SLR */
 
 export interface EjercicioParsing extends EjercicioBase {
   gramatica: string
-  /** Qué se le pide al alumno. La respuesta no se guarda: la calcula el motor. */
-  pedir: PedidoParsing
+  /** Qué etapas pide este ejercicio, en orden. La respuesta no se guarda: la calcula el motor. */
+  etapas: EtapaParsing[]
 }
 
 /* ---------- Código intermedio ---------- */
