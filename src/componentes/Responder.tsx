@@ -3,6 +3,8 @@ import { comparar } from '../lib/comparar.ts'
 import type { Comparacion } from '../lib/comparar.ts'
 import { corregirConIA, hayClaveIA } from '../lib/corregirIA.ts'
 import type { CorreccionIA } from '../lib/corregirIA.ts'
+import type { Ruta } from '../lib/router.ts'
+import Enlace from './Enlace.tsx'
 import Boton from '../ui/Boton.tsx'
 import Icono from '../ui/Icono.tsx'
 
@@ -32,6 +34,8 @@ interface Props {
   filas?: number
   /** La consigna, para darle contexto a la corrección con IA. */
   consigna?: string
+  /** Para poder mandar a Ajustes a quien todavía no cargó su clave. */
+  ir?: (r: Ruta) => void
 }
 
 const ROTULO_IA: Record<CorreccionIA['veredicto'], string> = {
@@ -40,7 +44,7 @@ const ROTULO_IA: Record<CorreccionIA['veredicto'], string> = {
   mal: 'La IA la da por incorrecta'
 }
 
-export default function Responder({ clave, modelo, revelada, filas = 4, consigna = '' }: Props) {
+export default function Responder({ clave, modelo, revelada, filas = 4, consigna = '', ir }: Props) {
   const [texto, setTexto] = useState('')
   const [comp, setComp] = useState<Comparacion | null>(null)
   const [ia, setIA] = useState<CorreccionIA | null>(null)
@@ -107,12 +111,23 @@ export default function Responder({ clave, modelo, revelada, filas = 4, consigna
           sola. Sólo aparece cuando el motor no pudo dar un veredicto por su cuenta. */}
       {revelada && texto.trim() && comp?.clase === 'asistida' && (
         <div className="ia">
-          {!ia && (
-            <Boton tamaño="sm" variante="secondary" onClick={() => void pedirIA()} cargando={pidiendo}
-                   disabled={!hayClaveIA()}>
-              {hayClaveIA() ? 'Que la revise la IA' : 'Revisión con IA (cargá tu clave en Ajustes)'}
+          {/* Sin clave NO va un botón deshabilitado: un control inerte que además lleva la
+              instrucción adentro la pinta con el gris más apagado de la app, no se puede
+              clickear y no lleva a ningún lado. Va una oferta con un enlace de verdad. */}
+          {!ia && (hayClaveIA() ? (
+            <Boton tamaño="sm" variante="secondary" onClick={() => void pedirIA()} cargando={pidiendo}>
+              Que la revise la IA
             </Boton>
-          )}
+          ) : ir ? (
+            <p className="ia__oferta">
+              <Icono nombre="chispa" tam={14} />
+              <span>
+                ¿Querés que además la revise una IA y te diga qué te falta?{' '}
+                <Enlace a={{ v: 'ajustes' }} ir={ir}>Cargá tu clave de Azure</Enlace>: queda en
+                este navegador y la usás solo vos.
+              </span>
+            </p>
+          ) : null)}
           {errorIA && <p className="ia__error" role="status">{errorIA}</p>}
           {ia && (
             <div className={'comparacion comparacion--ia comparacion--ia-' + ia.veredicto} role="status">

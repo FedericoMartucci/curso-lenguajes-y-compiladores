@@ -719,6 +719,12 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
    honesta del componente. El veredicto lo dice el texto; el color sólo dice quién habló. */
 .ia { margin-top: var(--s3); }
 .ia__error { margin-top: var(--s2); font-size: var(--fs-sm); color: var(--bad); }
+/* La oferta cuando todavía no hay clave: es texto con un enlace, no un botón apagado. */
+.ia__oferta {
+  display: flex; align-items: flex-start; gap: var(--s2);
+  font-size: var(--fs-sm); line-height: 1.55; color: var(--ink-2);
+}
+.ia__oferta > svg { flex: 0 0 auto; margin-top: 3px; color: var(--purple); }
 .comparacion--ia { background: var(--purple-bg); color: var(--purple); }
 .comparacion--ia .comparacion__d { color: var(--ink-2); }
 .ia__sello {
