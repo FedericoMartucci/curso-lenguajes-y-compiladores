@@ -44,11 +44,17 @@ export default function BarraLateral({
 
   useEscape(abierta, cerrar)
 
-  // el drawer atrapa el foco: en mobile no se puede tabular al fondo mientras está abierto
+  // al abrir el drawer el foco entra; al cerrarlo vuelve a donde estaba.
+  // El fondo queda `inert` (ver App.tsx), así que no hace falta atrapar el foco a mano.
+  const focoPrevio = useRef<HTMLElement | null>(null)
   useEffect(() => {
-    if (!abierta || !ref.current) return
-    const primero = ref.current.querySelector<HTMLElement>('a, button')
-    primero?.focus()
+    if (abierta) {
+      focoPrevio.current = document.activeElement as HTMLElement | null
+      ref.current?.querySelector<HTMLElement>('a, button')?.focus()
+    } else if (focoPrevio.current) {
+      focoPrevio.current.focus()
+      focoPrevio.current = null
+    }
   }, [abierta])
 
   const sem = semanaDe(progreso.semana)

@@ -67,6 +67,12 @@
 .pill--aviso   { background: var(--warn-bg); color: var(--warn); }
 .pill--aho     { background: transparent; color: var(--purple); border-color: var(--purple); }
 .pill--mono    { font-family: var(--mono); font-size: 11px; }
+/* El emoji cae en la fuente del sistema, con métricas propias: a 12px queda como un
+   borrón pegado al texto. Se le da tamaño y aire propios. */
+.pill > [aria-hidden] {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: 10px; line-height: 1; margin-right: 1px;
+}
 /* Marca compacta: solo el símbolo, sin la cápsula. Para cuando el contexto ya da el significado. */
 .marca-tema { font-size: var(--fs-sm); line-height: 1; flex: 0 0 auto; }
 

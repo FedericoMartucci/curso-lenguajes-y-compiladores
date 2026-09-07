@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
 import { useRuta } from './lib/router.ts'
+import type { Ruta } from './lib/router.ts'
 import { ProveedorSesion, useSesion } from './lib/sesion.tsx'
 import { ProveedorProgreso, useProgreso } from './lib/progreso.tsx'
 import { calcularHoy } from './lib/hoy.ts'
+import type { Hoy } from './lib/hoy.ts'
 import { TOTAL_EJERCICIOS } from './lib/ejercicios.ts'
 import BarraLateral from './componentes/BarraLateral.tsx'
 import PaletaComandos from './componentes/PaletaComandos.tsx'
@@ -98,7 +100,9 @@ function Contenido() {
 
       {drawer && <div className="backdrop" onClick={() => setDrawer(false)} aria-hidden="true" />}
 
-      <div className="columna">
+      {/* `inert` saca del árbol de accesibilidad y del orden de tabulación todo el fondo
+          mientras el drawer está abierto: es el atrapado de foco, sin librería. */}
+      <div className="columna" inert={drawer || undefined}>
         <header className="superior">
           <button
             type="button" className="btn btn--ghost btn--sm"
@@ -113,7 +117,7 @@ function Contenido() {
 
         <main className="principal" id="contenido" tabIndex={-1}>
           <Suspense fallback={<SkeletonProsa lineas={8} />}>
-            <Vista />
+            <Vista ruta={ruta} ir={ir} hoy={hoy} />
           </Suspense>
         </main>
       </div>
@@ -121,23 +125,27 @@ function Contenido() {
       <PaletaComandos abierta={paleta} cerrar={cerrarPaleta} ir={ir} />
     </div>
   )
+}
 
-  function Vista() {
-    switch (ruta.v) {
-      case 'inicio': return <Inicio ir={ir} hoy={hoy} />
-      case 'plan': return <Plan ir={ir} />
-      case 'leccion': return <Leccion id={ruta.id} ir={ir} />
-      case 'modulo': return <Plan ir={ir} />
-      case 'ejercitar': return <Ejercitar ir={ir} />
-      case 'examen': return <Examen ir={ir} />
-      case 'sandbox': return <Sandbox ir={ir} tipo={ruta.tipo} ej={ruta.ej} />
-      case 'mesa': return <Mesa />
-      case 'practicas': return <Practicas id={ruta.id} ir={ir} />
-      case 'clases': return <Clases id={ruta.id} ir={ir} />
-      case 'ajustes': return <Ajustes />
-      case 'buscar': return <Inicio ir={ir} hoy={hoy} />
-      case 'nada': return <NoEncontrado ir={ir} />
-    }
+/* Tiene que estar FUERA de Contenido. Declarada adentro, React la ve como un tipo de
+   componente distinto en cada render y desmonta todo el árbol: se perdía el resultado
+   de una validación apenas se registraba el intento, porque eso actualiza el progreso
+   y vuelve a renderizar el shell. */
+function Vista({ ruta, ir, hoy }: { ruta: Ruta; ir: (r: Ruta) => void; hoy: Hoy }) {
+  switch (ruta.v) {
+    case 'inicio': return <Inicio ir={ir} hoy={hoy} />
+    case 'plan': return <Plan ir={ir} />
+    case 'leccion': return <Leccion id={ruta.id} ir={ir} />
+    case 'modulo': return <Plan ir={ir} />
+    case 'ejercitar': return <Ejercitar ir={ir} />
+    case 'examen': return <Examen ir={ir} />
+    case 'sandbox': return <Sandbox ir={ir} tipo={ruta.tipo} ej={ruta.ej} />
+    case 'mesa': return <Mesa />
+    case 'practicas': return <Practicas id={ruta.id} ir={ir} />
+    case 'clases': return <Clases id={ruta.id} ir={ir} />
+    case 'ajustes': return <Ajustes />
+    case 'buscar': return <Inicio ir={ir} hoy={hoy} />
+    case 'nada': return <NoEncontrado ir={ir} />
   }
 }
 
