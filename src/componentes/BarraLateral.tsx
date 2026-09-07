@@ -15,6 +15,8 @@ interface Props {
   ruta: Ruta
   ir: (r: Ruta) => void
   abierta: boolean
+  /** true cuando la barra es un drawer (mobile) en vez de una columna fija. */
+  esDrawer: boolean
   cerrar: () => void
   abrirPaleta: () => void
   /** Cuántas preguntas tocan hoy, para el aviso de Ejercitación. */
@@ -29,7 +31,7 @@ const enParcial = (p: Parcial, f: FiltroParcial): boolean =>
   f === 'todo' || p === f || p === 'I y II'
 
 export default function BarraLateral({
-  ruta, ir, abierta, cerrar, abrirPaleta, vencidas, resueltos, totalEjercicios
+  ruta, ir, abierta, esDrawer, cerrar, abrirPaleta, vencidas, resueltos, totalEjercicios
 }: Props) {
   const { progreso, leida } = useProgreso()
   const [filtro, setFiltro] = useState<FiltroParcial>('todo')
@@ -68,11 +70,19 @@ export default function BarraLateral({
   const pctSemana = leidasSemana.total ? leidasSemana.hechas / leidasSemana.total : 1
 
   return (
-    <aside className="lateral" data-abierta={abierta ? 'true' : 'false'} ref={ref} aria-label="Navegación del curso">
+    <aside
+      className="lateral" data-abierta={abierta ? 'true' : 'false'} ref={ref}
+      aria-label="Navegación del curso"
+      /* Cerrado en mobile está fuera de pantalla pero sigue siendo tabulable: eran 31
+         paradas de foco invisibles antes de llegar al contenido. */
+      inert={(esDrawer && !abierta) || undefined}
+    >
       <div className="lateral__fijo">
+        {/* La marca no es el encabezado del documento: el título de la vista sí. Antes el
+            único h1 era éste, a 14px, y el título de página era un h2 a 30px. */}
         <Enlace a={{ v: 'inicio' }} ir={ir} className="marca">
-          <h1>Lenguajes y Compiladores</h1>
-          <p>UNLaM · 1124/3663</p>
+          <span className="marca__n">Lenguajes y Compiladores</span>
+          <span className="marca__sub">UNLaM · 1124/3663</span>
         </Enlace>
 
         <Enlace a={{ v: 'plan' }} ir={ir} className="semana-chip">
@@ -98,7 +108,7 @@ export default function BarraLateral({
           <NavLink a={{ v: 'inicio' }} ir={ir} activo={ruta.v === 'inicio'}>Hoy</NavLink>
           <NavLink a={{ v: 'plan' }} ir={ir} activo={ruta.v === 'plan'}>Plan de estudio</NavLink>
 
-          <div className="nav__grupo"><h2>Practicar</h2></div>
+          <div className="nav__grupo" role="presentation"><span>Practicar</span></div>
           <NavLink a={{ v: 'ejercitar' }} ir={ir} activo={ruta.v === 'ejercitar'}
                    aviso={vencidas > 0 ? String(vencidas) : undefined}>
             Ejercitación
@@ -109,14 +119,12 @@ export default function BarraLateral({
           </NavLink>
           <NavLink a={{ v: 'examen' }} ir={ir} activo={ruta.v === 'examen'}>Modo examen</NavLink>
 
-          <div className="nav__grupo"><h2>Material</h2></div>
+          <div className="nav__grupo" role="presentation"><span>Material</span></div>
           <NavLink a={{ v: 'practicas' }} ir={ir} activo={ruta.v === 'practicas'}>Enunciados</NavLink>
           <NavLink a={{ v: 'clases' }} ir={ir} activo={ruta.v === 'clases'}>Clases grabadas</NavLink>
           <NavLink a={{ v: 'mesa' }} ir={ir} activo={ruta.v === 'mesa'}>Mesa de trabajo</NavLink>
 
-          <div className="nav__grupo">
-            <h2>Teoría</h2>
-          </div>
+          <div className="nav__grupo" role="presentation"><span>Teoría</span></div>
           <div className="arbol__filtros" role="group" aria-label="Filtrar módulos por parcial">
             {(['todo', 'I', 'II'] as FiltroParcial[]).map((f) => (
               <button

@@ -69,6 +69,23 @@ function prefiereOscuro(): boolean {
   catch { return false }
 }
 
+/** true cuando la barra lateral se comporta como drawer. El breakpoint es el mismo que
+    el de shell.css: si cambia uno hay que cambiar el otro. */
+export function useEsDrawer(): boolean {
+  const [es, setEs] = useState<boolean>(() => {
+    try { return window.matchMedia?.('(max-width: 880px)').matches ?? false }
+    catch { return false }
+  })
+  useEffect(() => {
+    const mq = window.matchMedia?.('(max-width: 880px)')
+    if (!mq) return
+    const on = (e: MediaQueryListEvent) => setEs(e.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return es
+}
+
 /* ---------- utilidades de interacción ---------- */
 
 /** Cierra algo al apretar Escape. */

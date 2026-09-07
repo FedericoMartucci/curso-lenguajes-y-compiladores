@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react
 import { useRuta } from './lib/router.ts'
 import type { Ruta } from './lib/router.ts'
 import { ProveedorSesion, useSesion } from './lib/sesion.tsx'
+import { useTheme, useEsDrawer } from './lib/hooks.ts'
 import { ProveedorProgreso, useProgreso } from './lib/progreso.tsx'
 import { calcularHoy } from './lib/hoy.ts'
 import type { Hoy } from './lib/hoy.ts'
@@ -38,6 +39,7 @@ function Contenido() {
   const { progreso } = useProgreso()
   const [drawer, setDrawer] = useState(false)
   const [paleta, setPaleta] = useState(false)
+  const esDrawer = useEsDrawer()
 
   const hoy = useMemo(() => calcularHoy(progreso), [progreso])
 
@@ -92,7 +94,7 @@ function Contenido() {
 
       <BarraLateral
         ruta={ruta} ir={ir}
-        abierta={drawer} cerrar={() => setDrawer(false)}
+        abierta={drawer} esDrawer={esDrawer} cerrar={() => setDrawer(false)}
         abrirPaleta={() => setPaleta(true)}
         vencidas={hoy.vencidas.length}
         resueltos={resueltos}
@@ -178,6 +180,11 @@ function Puerta() {
 }
 
 export default function App() {
+  // Tiene que vivir acá y no en Ajustes: el efecto que escribe `data-theme` sólo corre
+  // mientras el componente que lo llama está montado. Colgado de una vista, el tema
+  // guardado se ignoraba en todas las demás rutas.
+  useTheme()
+
   return (
     <ProveedorSesion>
       <Puerta />

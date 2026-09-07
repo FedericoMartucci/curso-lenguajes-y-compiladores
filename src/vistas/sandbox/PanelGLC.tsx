@@ -9,6 +9,8 @@ import { Casos } from '../../componentes/Casos.tsx'
 import Teclado from '../../componentes/Teclado.tsx'
 import Campo from '../../ui/Campo.tsx'
 import Boton from '../../ui/Boton.tsx'
+import { Escalones, Escalon } from '../../componentes/Escalones.tsx'
+import Icono from '../../ui/Icono.tsx'
 
 const muestra = (s: string) => (s === '' ? '⟨vacía⟩' : s)
 
@@ -44,7 +46,20 @@ export default function PanelGLC({ id, ir }: { id: string; ir: (r: Ruta) => void
 
   return (
     <div>
-      <EncabezadoEjercicio tipo="glc" e={e} casos={e.ac.length + e.rc.length} lista={GLC} ir={ir} />
+      <EncabezadoEjercicio
+        tipo="glc" e={e} casos={e.ac.length + e.rc.length} lista={GLC} ir={ir}
+        extra={
+          <div className="honestidad">
+            <Icono nombre="libro" tam={16} />
+            <p>
+              <b>Se valida el lenguaje, no la forma del árbol.</b> El reconocedor comprueba qué
+              cadenas acepta y cuáles rechaza tu gramática. La <b>precedencia</b> y la{' '}
+              <b>asociatividad</b> no cambian qué cadenas se aceptan —sólo la forma del árbol—,
+              así que si el ejercicio las pide, comparalas vos con el modelo.
+            </p>
+          </div>
+        }
+      />
 
       <div className="panel panel--plano" style={{ marginTop: 'var(--s4)', fontSize: 'var(--fs-sm)' }}>
         <p style={{ marginBottom: 'var(--s2)' }}>
@@ -65,8 +80,7 @@ export default function PanelGLC({ id, ir }: { id: string; ir: (r: Ruta) => void
             <code>NoTerminal -&gt; símbolos | alternativa</code>. Los símbolos van separados por espacios,
             <code>ε</code> es la cadena vacía y el primer no terminal es el símbolo distinguido.
           </>}
-          error={res?.error ?? null}
-        >
+          >
           {(p) => (
             <>
               <textarea
@@ -99,12 +113,14 @@ export default function PanelGLC({ id, ir }: { id: string; ir: (r: Ruta) => void
 
       <TrasResolver ok={res?.ok === true} tipo="glc" actual={e.id} lista={GLC} ir={ir} />
 
-      <details style={{ marginTop: 'var(--s5)' }}>
-        <summary style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 'var(--fs-base)' }}>
-          Ver una respuesta modelo
-        </summary>
-        <pre style={{ marginTop: 'var(--s3)' }}>{e.m}</pre>
-      </details>
+      <Escalones>
+        <Escalon titulo="Una pista" costo="no revela la respuesta">
+          <p>Si rechaza algo que debería aceptar, falta una alternativa o un nivel de recursión. Si acepta algo que debería rechazar, alguna regla es más laxa que la consigna. Acordate de que ε hace anulable a todo un no terminal.</p>
+        </Escalon>
+        <Escalon titulo="Ver una respuesta modelo" costo="revela todo">
+          <pre>{e.m}</pre>
+        </Escalon>
+      </Escalones>
     </div>
   )
 }

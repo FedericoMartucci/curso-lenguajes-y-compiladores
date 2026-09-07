@@ -7,7 +7,9 @@ interface Props extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className
   variante?: VarianteBoton
   tamaño?: TamañoBoton
   cargando?: boolean
-  /** Atajo que dispara la misma acción. Se muestra dentro del botón: el atajo se aprende viéndolo. */
+  /** Atajo que dispara la misma acción. Se muestra dentro del botón para que se aprenda
+      viéndolo, así que SÓLO se pasa cuando el atajo está atado de verdad en algún lado:
+      una insignia que no dispara nada es una promesa rota. */
   tecla?: string
   children: ReactNode
   clase?: string

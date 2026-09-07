@@ -45,7 +45,7 @@ export default function Leccion({ id, ir }: Props) {
         migas={
           <>
             <Enlace a={{ v: 'plan' }} ir={ir}>Módulo {l.mod.id} · {l.mod.titulo}</Enlace>
-            {sem && <><span>·</span><span>se ve en la semana {sem}</span></>}
+            {sem && <><span>·</span><Enlace a={{ v: 'plan' }} ir={ir}>se ve en la semana {sem}</Enlace></>}
           </>
         }
         titulo={<><span style={{ color: 'var(--ink-3)', fontFamily: 'var(--mono)', fontSize: '0.7em' }}>{l.id}</span>{' '}{l.titulo}</>}

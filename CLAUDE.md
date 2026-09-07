@@ -171,8 +171,18 @@ la ruta a la lista de `tests/smoke.tsx`.
 - **Un componente declarado adentro de otro se remonta en cada render.** `Vista` estaba dentro de
   `Contenido` y React perdía todo el estado local del árbol cada vez que cambiaba el progreso: el
   resultado de una validación desaparecía al instante. Los componentes van a nivel de módulo.
-- **`text-overflow: ellipsis` no hace nada en un elemento inline.** Todo `<span>` que trunque tiene
-  que ser `display: block`. Pasó tres veces: paginador, lista de metas y paleta de comandos.
+- **Un `<span>` dentro de un contenedor de layout necesita `display: block`.** Es el bug más
+  recurrente del proyecto: apareció cinco veces (paginador, lista de metas, paleta de comandos,
+  material y las tarjetas de dato). Dos síntomas, una causa:
+  `text-overflow: ellipsis` no hace nada en un inline, y dos spans apilados quedan en la misma línea.
+- **Un item de grid o flex con contenido `nowrap` necesita `min-width: 0`.** El piso de un track
+  es su min-content, así que un título `nowrap` o una tabla con celdas `nowrap` estiran el track
+  más allá del viewport. Apareció en `.hoy__meta` (+164px a 390px) y en `.sb__layout` con la tabla
+  SLR abierta (390 → 477). `min-width: 0` en un hijo flex NO arregla el track del grid que lo contiene.
+- **Una insignia de atajo que no dispara nada es una promesa rota.** `Boton` sólo dibuja `tecla`;
+  atarla es responsabilidad de quien lo usa. Sólo se pasa cuando el atajo existe de verdad.
+- **Un `placeholder` copiado del modelo es la respuesta servida.** El del campo de ER era, carácter
+  por carácter, la solución del ejercicio donde se aterriza.
 - **Persistir en un efecto de montaje escribe basura.** `useBorrador` guardaba el borrador al montar
   y creaba entradas de ejercicios nunca intentados. Solo se persiste después de una edición real.
 - **Unir dos mapas resucita lo borrado.** La primera versión de `fusionar` hacía `{...a, ...b}`, así

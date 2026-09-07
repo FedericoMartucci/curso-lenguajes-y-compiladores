@@ -8,6 +8,7 @@ import type { Ruta } from '../../lib/router.ts'
 import { EncabezadoEjercicio, TrasResolver, useBorrador } from './marco.tsx'
 import Campo from '../../ui/Campo.tsx'
 import Boton from '../../ui/Boton.tsx'
+import { Escalones, Escalon } from '../../componentes/Escalones.tsx'
 import Icono from '../../ui/Icono.tsx'
 
 const setTxt = (s: Iterable<string> | undefined) => [...(s ?? [])].sort().join(', ') || '∅'
@@ -54,7 +55,7 @@ export default function PanelParsing({ id, ir }: { id: string; ir: (r: Ruta) => 
   return (
     <div>
       <EncabezadoEjercicio
-        tipo="parsing" e={e} casos={info?.estados.length ?? 0} lista={PARSING} ir={ir}
+        tipo="parsing" e={e} casos={0} lista={PARSING} ir={ir}
         extra={
           <div className="honestidad">
             <Icono nombre="libro" tam={16} />
@@ -78,7 +79,7 @@ export default function PanelParsing({ id, ir }: { id: string; ir: (r: Ruta) => 
               <Campo label="PRIMEROS" nota="un no terminal por línea" ayuda={<>Por ejemplo: <code>E = id, cte</code></>}>
                 {(p) => (
                   <textarea {...p} className="control" rows={4} value={prim}
-                            placeholder={'E = id, cte\nT = id, cte'}
+                            placeholder={'NoTerminal = terminal, terminal'}
                             onChange={(ev) => set('prim', ev.target.value)}
                             onKeyDown={(ev) => { if ((ev.metaKey || ev.ctrlKey) && ev.key === 'Enter') validar() }} />
                 )}
@@ -88,7 +89,7 @@ export default function PanelParsing({ id, ir }: { id: string; ir: (r: Ruta) => 
               <Campo label="SIGUIENTES" nota="usá $ para el fin de la entrada">
                 {(p) => (
                   <textarea {...p} className="control" rows={4} value={sig}
-                            placeholder={'E = $, +\nT = $, +, *'}
+                            placeholder={'NoTerminal = $, terminal'}
                             onChange={(ev) => set('sig', ev.target.value)}
                             onKeyDown={(ev) => { if ((ev.metaKey || ev.ctrlKey) && ev.key === 'Enter') validar() }} />
                 )}
@@ -175,21 +176,31 @@ export default function PanelParsing({ id, ir }: { id: string; ir: (r: Ruta) => 
         tipo="parsing" actual={e.id} lista={PARSING} ir={ir}
       />
 
-      <details style={{ marginTop: 'var(--s5)' }}>
-        <summary style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 'var(--fs-base)' }}>
-          Ver la solución completa: gramática aumentada, conjuntos, estados y tabla SLR
-        </summary>
-        {info ? <Solucion info={info} /> : <p style={{ color: 'var(--ink-3)' }}>No pude procesar la gramática.</p>}
-      </details>
+      <Escalones>
+        <Escalon titulo="Una pista" costo="no revela la respuesta">
+          <p>
+            PRIMEROS de un no terminal son los terminales con los que puede <b>empezar</b> lo que
+            deriva; si puede derivar vacío, además hereda. SIGUIENTES son los terminales que pueden
+            aparecer <b>justo después</b>, y <code>$</code> arranca siempre en el del símbolo
+            distinguido. Un no terminal al final de una regla hereda los SIGUIENTES del de la izquierda.
+          </p>
+        </Escalon>
+        <Escalon titulo="Ver la gramática aumentada y los conjuntos" costo="revela parte">
+          {info ? <SolucionConjuntos info={info} /> : <p style={{ color: 'var(--ink-3)' }}>No pude procesar la gramática.</p>}
+        </Escalon>
+        <Escalon titulo="Ver los estados y la tabla SLR" costo="revela todo">
+          {info ? <SolucionTabla info={info} /> : <p style={{ color: 'var(--ink-3)' }}>No pude procesar la gramática.</p>}
+        </Escalon>
+      </Escalones>
     </div>
   )
 }
 
-function Solucion({ info }: { info: InfoSLR }) {
+function SolucionConjuntos({ info }: { info: InfoSLR }) {
   const g = info.gAumentada
   const noTerm = info.noTerminales.filter((A) => A !== g.start)
   return (
-    <div style={{ marginTop: 'var(--s4)' }}>
+    <div>
       <p className="campo__label">Gramática aumentada</p>
       <pre>{reglasNumeradas(g).join('\n')}</pre>
 
@@ -208,8 +219,16 @@ function Solucion({ info }: { info: InfoSLR }) {
           </tbody>
         </table>
       </div>
+    </div>
+  )
+}
 
-      <p className="campo__label" style={{ marginTop: 'var(--s4)' }}>
+function SolucionTabla({ info }: { info: InfoSLR }) {
+  const g = info.gAumentada
+  const noTerm = info.noTerminales.filter((A) => A !== g.start)
+  return (
+    <div>
+      <p className="campo__label">
         Estados (ítems LR(0)) — {info.estados.length} estados
       </p>
       <pre>{info.estados.map((its, i) => `I${i}:\n` + its.map((it) => '   ' + textoItem(g, it)).join('\n')).join('\n')}</pre>

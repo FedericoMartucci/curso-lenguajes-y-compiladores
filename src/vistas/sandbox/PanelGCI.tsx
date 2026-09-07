@@ -6,6 +6,7 @@ import type { ResultadoEjecucion } from '../../tipos/motores.ts'
 import type { Ruta } from '../../lib/router.ts'
 import { EncabezadoEjercicio, TrasResolver, useBorrador } from './marco.tsx'
 import { CasosEjecucion } from '../../componentes/Casos.tsx'
+import { Escalones, Escalon } from '../../componentes/Escalones.tsx'
 import Campo from '../../ui/Campo.tsx'
 import Boton from '../../ui/Boton.tsx'
 import Icono from '../../ui/Icono.tsx'
@@ -76,12 +77,11 @@ export default function PanelGCI({ id, ir }: { id: string; ir: (r: Ruta) => void
 
       <TrasResolver ok={res?.ok === true} tipo="gci" actual={e.id} lista={GCI} ir={ir} />
 
-      <details style={{ marginTop: 'var(--s5)' }}>
-        <summary style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 'var(--fs-base)' }}>
-          Ver una respuesta modelo
-        </summary>
-        <pre style={{ marginTop: 'var(--s3)' }}>{e.m}</pre>
-      </details>
+      <Escalones>
+        <Escalon titulo="Ver una respuesta modelo" costo="revela todo">
+          <pre>{e.m}</pre>
+        </Escalon>
+      </Escalones>
     </div>
   )
 }

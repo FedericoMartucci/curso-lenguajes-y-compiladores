@@ -17,14 +17,14 @@
 .lateral__pie {
   padding: var(--s2) var(--s3) var(--s3);
   border-top: 1px solid var(--hairline);
-  display: grid; gap: var(--s1);
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s1);
 }
 .lateral__pie .sync { padding: 0 var(--s2); }
 
 .marca { display: block; margin-bottom: var(--s4); }
 .marca:hover { text-decoration: none; }
-.marca h1 { font-size: var(--fs-base); font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
-.marca p { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 1px; }
+.marca__n { display: block; font-size: var(--fs-base); font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+.marca__sub { display: block; font-size: var(--fs-xs); color: var(--ink-3); margin-top: 1px; }
 
 /* Tarjeta de la semana activa: lo primero que se ve, porque es el "dónde estoy". */
 .semana-chip {
@@ -63,7 +63,7 @@
 /* ============ Navegación ============ */
 .nav { padding: 0 var(--s2); }
 .nav__grupo { padding: var(--s4) var(--s2) var(--s1); }
-.nav__grupo h2 {
+.nav__grupo span {
   font-size: var(--fs-xs); font-weight: 600; color: var(--ink-3);
   letter-spacing: 0.03em; text-transform: uppercase;
 }
@@ -147,9 +147,9 @@
   display: flex; gap: var(--s5); align-items: baseline; justify-content: space-between;
   flex-wrap: wrap;
 }
-.cabecera__fila h2 { flex: 1 1 360px; min-width: 0; }
+.cabecera__fila h1 { flex: 1 1 360px; min-width: 0; }
 .cabecera__acciones { flex: 0 0 auto; display: flex; gap: var(--s2); align-items: center; }
-.cabecera h2 { font-size: var(--fs-3xl); letter-spacing: -0.02em; }
+.cabecera h1 { font-size: var(--fs-3xl); letter-spacing: -0.02em; }
 .cabecera__bajada {
   font-size: var(--fs-md); color: var(--ink-2); line-height: 1.6;
   max-width: var(--measure-ui); margin-top: var(--s2);

@@ -1,29 +1,34 @@
 import { useMemo } from 'react'
 import type { Ruta } from '../lib/router.ts'
 import type { Hoy } from '../lib/hoy.ts'
-import { calcularAvance } from '../lib/hoy.ts'
+import { calcularAvance, calcularPreparacion } from '../lib/hoy.ts'
 import { numeroVisible } from '../lib/ejercicios.ts'
+import { semanaDelCalendario, semana as semanaDe } from '../lib/plan.ts'
 import { useProgreso } from '../lib/progreso.tsx'
 import Enlace from '../componentes/Enlace.tsx'
 import Cabecera from './Cabecera.tsx'
 import Boton from '../ui/Boton.tsx'
-import Pill from '../ui/Pill.tsx'
-import { Barra } from '../ui/Progreso.tsx'
 import Icono from '../ui/Icono.tsx'
+import { Barra } from '../ui/Progreso.tsx'
 
 interface Props { ir: (r: Ruta) => void; hoy: Hoy }
 
 export default function Inicio({ ir, hoy }: Props) {
-  const { progreso, cerrarSemana } = useProgreso()
+  const { progreso, cerrarSemana, irASemana } = useProgreso()
+  // sugerir, nunca imponer: si la cursada va por otra semana que la tuya, se dice y listo
+  const segunCalendario = semanaDelCalendario()
+  const desfasado = segunCalendario !== null && segunCalendario !== progreso.semana
   const avance = useMemo(() => calcularAvance(progreso), [progreso])
-  const { semana, meta, pendientes, vencidas, deLaSemana, leidasSemana, semanaLista, pctSemana } = hoy
+  // la semana del parcial es la razón de ser del producto y mostraba lo mismo que un martes
+  const prep = useMemo(() => calcularPreparacion(progreso, progreso.semana), [progreso])
+  const { semana, meta, pendientes, vencidas, vencidasTotal, deLaSemana, leidasSemana, semanaLista, pctSemana } = hoy
 
   const arranque = avance.leidas === 0 && avance.sabidas === 0 && avance.resueltos === 0
 
   return (
     <>
       <Cabecera
-        migas={<><span>Semana {semana.n} {semana.cuando}</span><span>·</span><span>{semana.tema}</span></>}
+        migas={<><Enlace a={{ v: 'plan' }} ir={ir}>Semana {semana.n} {semana.cuando}</Enlace><span>·</span><span>{semana.tema}</span></>}
         titulo={arranque ? 'Empecemos' : 'Hoy'}
         bajada={
           arranque
@@ -32,6 +37,19 @@ export default function Inicio({ ir, hoy }: Props) {
         }
       />
 
+      {desfasado && segunCalendario !== null && (
+        <div className="desfase">
+          <Icono nombre="calendario" tam={16} />
+          <p>
+            Estás estudiando la <b>semana {progreso.semana}</b>. Según el cronograma, la cursada va
+            por la <b>{segunCalendario}</b>: {semanaDe(segunCalendario).tema}.
+          </p>
+          <Boton tamaño="sm" onClick={() => irASemana(segunCalendario)}>
+            Ir a la semana {segunCalendario}
+          </Boton>
+        </div>
+      )}
+
       {semana.hito && (
         <div className="callout tgt" style={{ marginBottom: 'var(--s5)' }}>
           <span className="lab">Esta semana en la cursada</span>
@@ -39,7 +57,68 @@ export default function Inicio({ ir, hoy }: Props) {
         </div>
       )}
 
+      {/* ---------- semana de parcial: otra pantalla ---------- */}
+      {prep && (
+        <section aria-labelledby="h-prep">
+          <h2 id="h-prep" style={{ fontSize: 'var(--fs-xl)', marginBottom: 'var(--s2)' }}>
+            Parcial {prep.parcial} · qué tenés que llevar
+          </h2>
+          <p style={{ color: 'var(--ink-2)', marginBottom: 'var(--s4)', maxWidth: '68ch' }}>
+            Entran {prep.modulosTexto}. Lo que cuenta no es haber leído: es llegar con las
+            prácticas resueltas y validadas.
+          </p>
+
+          <div className="rejilla rejilla--3">
+            {prep.practicas.map((pr) => {
+              const listo = pr.hechos === pr.total
+              return (
+                <Enlace
+                  key={pr.n} a={{ v: 'sandbox', tipo: pr.tipos[0] }} ir={ir}
+                  className="panel dato"
+                >
+                  <span className="dato__v" style={{ color: listo ? 'var(--ok)' : undefined }}>
+                    {pr.hechos}/{pr.total}
+                  </span>
+                  <span className="dato__l" style={{ marginBottom: 'var(--s3)' }}>
+                    Práctica {pr.n} · {pr.titulo}
+                  </span>
+                  <Barra valor={pr.total ? pr.hechos / pr.total : 0} tono={listo ? 'ok' : 'acento'} />
+                </Enlace>
+              )
+            })}
+          </div>
+
+          <div className="tira" style={{ marginTop: 'var(--s5)' }}>
+            <Boton variante="primary" onClick={() => ir({ v: 'examen' })}>
+              Simulacro cronometrado
+              <Icono nombre="flecha" tam={15} />
+            </Boton>
+            {prep.faltanLeer.length > 0 && (
+              <span style={{ fontSize: 'var(--fs-base)', color: 'var(--ink-2)' }}>
+                Te faltan <b>{prep.faltanLeer.length}</b> de {prep.totalObjetivo} lecciones marcadas 🎯
+              </span>
+            )}
+          </div>
+
+          {prep.faltanLeer.length > 0 && (
+            <div className="hoy__meta">
+              {prep.faltanLeer.slice(0, 4).map((l) => (
+                <Enlace key={l.id} a={{ v: 'leccion', id: l.id }} ir={ir} className="meta-item">
+                  <span className="meta-item__n">{l.id}</span>
+                  <span className="meta-item__cuerpo">
+                    <span className="meta-item__t">{l.titulo}</span>
+                    <span className="meta-item__sub">Módulo {l.mod.id} · {l.mod.titulo}</span>
+                  </span>
+                  <Icono nombre="flecha" tam={14} className="meta-item__flecha" />
+                </Enlace>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
       {/* ---------- la meta del día ---------- */}
+      {!prep && (
       <section aria-labelledby="h-leer">
         <div className="tira" style={{ justifyContent: 'space-between', marginBottom: 'var(--s2)' }}>
           <h3 id="h-leer" style={{ fontSize: 'var(--fs-xl)' }}>
@@ -102,6 +181,7 @@ export default function Inicio({ ir, hoy }: Props) {
           </div>
         )}
       </section>
+      )}
 
       {/* ---------- repaso y práctica ---------- */}
       <div className="rejilla rejilla--2" style={{ marginTop: 'var(--s7)' }}>
@@ -110,11 +190,15 @@ export default function Inicio({ ir, hoy }: Props) {
           {vencidas.length > 0 ? (
             <>
               <p style={{ color: 'var(--ink-2)', marginBottom: 'var(--s4)' }}>
-                Hay <b>{vencidas.length}</b> {vencidas.length === 1 ? 'pregunta' : 'preguntas'} que tocan hoy,
+                <b>{vencidas.length}</b> {vencidas.length === 1 ? 'pregunta' : 'preguntas'} para hoy,
                 de los temas que ya viste. Las que fallás vuelven antes.
+                {vencidasTotal > vencidas.length && (
+                  <> Hay {vencidasTotal} vencidas en total; van a ir saliendo de a poco.</>
+                )}
               </p>
-              <Boton variante="primary" onClick={() => ir({ v: 'ejercitar' })} tecla="e">
+              <Boton variante="primary" onClick={() => ir({ v: 'ejercitar' })}>
                 Empezar el repaso
+                <Icono nombre="flecha" tam={15} />
               </Boton>
             </>
           ) : (

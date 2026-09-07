@@ -77,7 +77,8 @@ export function IndiceEjercicios<E extends EjercicioBase>({ tipo, lista, actual,
 interface EncabezadoProps {
   tipo: TipoEjercicio
   e: Decorado<EjercicioBase>
-  /** Cuántos casos de prueba tiene, para decirlo antes de validar. */
+  /** Cuántos casos de prueba tiene, para decirlo antes de validar. 0 = no mostrar la
+      píldora: en parsing no hay casos, y poner el número de estados LR(0) ahí mentía. */
   casos: number
   lista: Decorado<EjercicioBase>[]
   ir: (r: Ruta) => void
@@ -97,7 +98,7 @@ export function EncabezadoEjercicio({ tipo, e, casos, lista, ir, extra }: Encabe
         <div className="tira" style={{ gap: 'var(--s2)' }}>
           <Pill tono="neutra" mono>{e.grupo}{numeroVisible(e.num) ? ` · ${e.num}` : ''}</Pill>
           <Pill tono={e.nivel === 'difícil' ? 'aviso' : 'neutra'}>{e.nivel}</Pill>
-          <Pill tono="neutra">{casos} {casos === 1 ? 'caso' : 'casos'}</Pill>
+          {casos > 0 && <Pill tono="neutra">{casos} {casos === 1 ? 'caso' : 'casos'}</Pill>}
           {resuelto(tipo, e.id) && <Pill tono="ok"><Icono nombre="check" tam={12} />resuelto</Pill>}
           {!resuelto(tipo, e.id) && est && est.intentos > 0 && (
             <Pill tono="neutra">{est.intentos} {est.intentos === 1 ? 'intento' : 'intentos'}</Pill>

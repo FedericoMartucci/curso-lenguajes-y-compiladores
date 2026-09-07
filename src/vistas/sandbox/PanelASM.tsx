@@ -6,8 +6,10 @@ import type { ResultadoEjecucion } from '../../tipos/motores.ts'
 import type { Ruta } from '../../lib/router.ts'
 import { EncabezadoEjercicio, TrasResolver, useBorrador } from './marco.tsx'
 import { CasosEjecucion } from '../../componentes/Casos.tsx'
+import { Escalones, Escalon } from '../../componentes/Escalones.tsx'
 import Campo from '../../ui/Campo.tsx'
 import Boton from '../../ui/Boton.tsx'
+import CodeEditor from '../../componentes/CodeEditor.tsx'
 import Icono from '../../ui/Icono.tsx'
 
 export default function PanelASM({ id, ir }: { id: string; ir: (r: Ruta) => void }) {
@@ -15,6 +17,8 @@ export default function PanelASM({ id, ir }: { id: string; ir: (r: Ruta) => void
   const { registrarIntento } = useProgreso()
   const [campos, set, limpiar] = useBorrador('asm', e.id, { txt: e.plantilla })
   const [res, setRes] = useState<ResultadoEjecucion | null>(null)
+  // borraba 16 líneas de Assembler de un clic, en estilo ghost, pegado al primario
+  const [confirmandoLimpiar, setConfirmandoLimpiar] = useState(false)
 
   const txt = campos.txt ?? e.plantilla
 
@@ -45,30 +49,33 @@ export default function PanelASM({ id, ir }: { id: string; ir: (r: Ruta) => void
       <div className="campos">
         <Campo label="Tu código Assembler" nota="completá el segmento .CODE">
           {(p) => (
-            <textarea
-              {...p} className="control" rows={16} value={txt}
-              onChange={(ev) => set('txt', ev.target.value)}
-              onKeyDown={(ev) => { if ((ev.metaKey || ev.ctrlKey) && ev.key === 'Enter') validar() }}
-            />
+            <CodeEditor {...p} value={txt} onChange={(v) => set('txt', v)} filas={16} onValidar={validar} />
           )}
         </Campo>
       </div>
 
       <div className="acciones">
         <Boton variante="primary" onClick={validar} tecla="⌘↵">Ejecutar y validar</Boton>
-        <Boton variante="ghost" onClick={limpiar}>Volver a la plantilla</Boton>
+        {confirmandoLimpiar
+          ? (
+            <span className="confirmar">
+              ¿Borrar tu código?
+              <Boton tamaño="sm" variante="danger" onClick={() => { limpiar(); setConfirmandoLimpiar(false) }}>Sí, borrar</Boton>
+              <Boton tamaño="sm" variante="ghost" onClick={() => setConfirmandoLimpiar(false)}>No</Boton>
+            </span>
+          )
+          : <Boton variante="ghost" onClick={() => setConfirmandoLimpiar(true)}>Volver a la plantilla</Boton>}
       </div>
 
       <CasosEjecucion resultado={res} />
 
       <TrasResolver ok={res?.ok === true} tipo="asm" actual={e.id} lista={ASM} ir={ir} />
 
-      <details style={{ marginTop: 'var(--s5)' }}>
-        <summary style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 'var(--fs-base)' }}>
-          Ver una respuesta modelo
-        </summary>
-        <pre style={{ marginTop: 'var(--s3)' }}>{e.m}</pre>
-      </details>
+      <Escalones>
+        <Escalon titulo="Ver una respuesta modelo" costo="revela todo">
+          <pre>{e.m}</pre>
+        </Escalon>
+      </Escalones>
     </div>
   )
 }

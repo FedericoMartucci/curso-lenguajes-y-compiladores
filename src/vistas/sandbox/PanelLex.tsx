@@ -11,6 +11,7 @@ import Teclado from '../../componentes/Teclado.tsx'
 import CodeEditor from '../../componentes/CodeEditor.tsx'
 import Campo from '../../ui/Campo.tsx'
 import Boton from '../../ui/Boton.tsx'
+import { Escalones, Escalon } from '../../componentes/Escalones.tsx'
 import Icono from '../../ui/Icono.tsx'
 
 const PLANTILLA = `ACCION LEXICA
@@ -86,8 +87,7 @@ export default function PanelLex({ id, ir }: { id: string; ir: (r: Ruta) => void
             <code>cantidad de guiones medios</code>. También <code>len(yytext)</code>, <code>val()</code> o{' '}
             <code>abs(valor)</code>. Se pueden combinar con <code>and</code> / <code>or</code>.
           </>}
-          error={res?.error ?? null}
-        >
+          >
           {(p) => (
             <CodeEditor {...p} value={codigo} onChange={(v) => set('codigo', v)} filas={8} onValidar={validar} />
           )}
@@ -110,12 +110,14 @@ export default function PanelLex({ id, ir }: { id: string; ir: (r: Ruta) => void
 
       <TrasResolver ok={res?.ok === true} tipo="lex" actual={e.id} lista={LEX} ir={ir} />
 
-      <details style={{ marginTop: 'var(--s5)' }}>
-        <summary style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 'var(--fs-base)' }}>
-          Ver una respuesta modelo
-        </summary>
-        <pre style={{ marginTop: 'var(--s3)' }}>{'ER:  ' + e.mER + '\n\n' + codigoModelo(e.atr, e.op, e.cota)}</pre>
-      </details>
+      <Escalones>
+        <Escalon titulo="Una pista" costo="no revela la respuesta">
+          <p>La expresión regular reconoce la <b>forma</b>; la acción léxica valida la <b>cota</b>. Si fallan casos con forma válida, el problema está en la condición del if; si fallan casos con forma inválida, está en la expresión. Cada fila roja te dice cuál de las dos.</p>
+        </Escalon>
+        <Escalon titulo="Ver una respuesta modelo" costo="revela todo">
+          <pre>{'ER:  ' + e.mER + '\n\n' + codigoModelo(e.atr, e.op, e.cota)}</pre>
+        </Escalon>
+      </Escalones>
     </div>
   )
 }

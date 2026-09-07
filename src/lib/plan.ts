@@ -117,6 +117,33 @@ export const SEMANAS: Semana[] = [
 
 export const TOTAL_SEMANAS = SEMANAS.length
 
+/* El lunes de cada semana del cronograma 2C2026. Se usa SÓLO para sugerir: el modelo sigue
+   siendo "avanzás cuando cerrás la semana", no cuando pasa el tiempo. Pero una app que
+   muestra "Semana 1 · del 17 de agosto" un 7 de septiembre está mintiendo en silencio. */
+const LUNES: string[] = [
+  '2026-08-17', '2026-08-24', '2026-08-31', '2026-09-07',
+  '2026-09-14', '2026-09-21', '2026-09-28', '2026-10-05',
+  '2026-10-12', '2026-10-19', '2026-10-26', '2026-11-02',
+  '2026-11-09', '2026-11-16', '2026-11-23', '2026-11-30'
+]
+
+/** En qué semana va la cursada según el calendario. `null` fuera del cuatrimestre.
+    Nunca decide por el alumno: sólo se compara con la suya para poder avisarle. */
+export function semanaDelCalendario(ahora = new Date()): number | null {
+  const hoy = ahora.getTime()
+  const primera = new Date(LUNES[0] + 'T00:00:00').getTime()
+  if (hoy < primera) return null
+  for (let i = LUNES.length - 1; i >= 0; i--) {
+    if (hoy >= new Date(LUNES[i] + 'T00:00:00').getTime()) {
+      // una semana después de la última clase, el cuatrimestre terminó
+      const finUltima = new Date(LUNES[LUNES.length - 1] + 'T00:00:00').getTime() + 7 * 86_400_000
+      if (hoy >= finUltima) return null
+      return i + 1
+    }
+  }
+  return null
+}
+
 export const semana = (n: number): Semana =>
   SEMANAS.find((s) => s.n === n) ?? (SEMANAS[0] as Semana)
 

@@ -48,7 +48,8 @@
 
 /* La tecla que dispara la acción, dentro del propio botón. */
 .btn__tecla {
-  font-family: var(--mono); font-size: 11px; opacity: 0.7;
+  /* 0.7 hundía texto blanco puro a 4.28:1 sobre el acento. 0.85 da 5.44:1. */
+  font-family: var(--mono); font-size: 11px; opacity: 0.85;
   border: 1px solid currentColor; border-radius: 4px; padding: 1px 4px; line-height: 1;
 }
 
@@ -285,7 +286,7 @@ kbd {
 .paleta__pie span { display: inline-flex; align-items: center; gap: 4px; }
 
 /* Skeleton de lectura: mismas proporciones que la prosa, para que no salte al llegar. */
-.skel-prosa { max-width: var(--measure-read); display: grid; gap: var(--s3); }
+.skel-prosa { max-width: var(--measure-read); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s3); }
 .skel-prosa .skel { height: 1.05em; }
 .skel-prosa .skel:nth-child(4n) { width: 62%; margin-bottom: var(--s4); }
 .skel-prosa .skel:nth-child(5n) { width: 88%; }
@@ -302,3 +303,11 @@ kbd {
 .enlace-flecha .ico { transition: transform var(--dur) var(--ease-out); }
 .enlace-flecha:hover .ico { transform: translateX(2px); }
 @media (prefers-reduced-motion: reduce) { .enlace-flecha:hover .ico { transform: none; } }
+
+/* Confirmación en línea. Nunca un modal para algo que se resuelve donde está el botón. */
+.confirmar {
+  display: inline-flex; align-items: center; gap: var(--s2);
+  font-size: var(--fs-sm); color: var(--bad);
+  background: var(--bad-bg); border-radius: var(--r-sm);
+  padding: var(--s1) var(--s2);
+}

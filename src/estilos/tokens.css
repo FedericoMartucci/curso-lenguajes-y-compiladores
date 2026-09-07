@@ -1,4 +1,10 @@
-/* Tokens del sistema. Único lugar donde se definen colores, tipografía, espaciado y motion.
+/* REGLA DEL SISTEMA, aprendida a los golpes seis veces: un track implícito de grid tiene
+   piso min-content, así que toda grilla de una columna que pueda contener texto `nowrap`,
+   un <pre> o una tabla necesita `grid-template-columns: minmax(0, 1fr)` explícito. Sin eso
+   el track se estira más allá del viewport y el body scrollea en horizontal.
+   Lo mismo para los items: `min-width: 0` en el hijo NO arregla el track que lo contiene.
+
+   Tokens del sistema. Único lugar donde se definen colores, tipografía, espaciado y motion.
    Ningún componente escribe un color literal.
 
    Sobre el formato: la paleta va en hexadecimal y no en OKLCH a propósito. No se genera

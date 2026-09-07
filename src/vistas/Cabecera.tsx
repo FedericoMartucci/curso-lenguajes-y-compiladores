@@ -14,7 +14,7 @@ export default function Cabecera({ migas, titulo, bajada, meta, acciones }: Prop
     <header className="cabecera">
       {migas && <div className="cabecera__migas">{migas}</div>}
       <div className="cabecera__fila">
-        <h2>{titulo}</h2>
+        <h1>{titulo}</h1>
         {acciones && <div className="cabecera__acciones">{acciones}</div>}
       </div>
       {bajada && <p className="cabecera__bajada">{bajada}</p>}

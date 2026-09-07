@@ -63,7 +63,7 @@
 .qa { border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; }
 .qa + .qa { margin-top: var(--s2); }
 .qa summary {
-  cursor: pointer; padding: var(--s3) var(--s4);
+  cursor: pointer; padding: var(--s3) var(--s4); min-height: 40px;
   font-size: var(--fs-md); background: var(--sunken);
   list-style: none; display: flex; gap: var(--s3); align-items: baseline;
 }
@@ -98,16 +98,24 @@
 @media (max-width: 560px) { .pager { flex-direction: column; } .pager .nx { text-align: left; } }
 
 /* ===================== Tarjetas y rejillas ===================== */
-.rejilla { display: grid; gap: var(--s3); align-items: start; }
+.rejilla { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s3); align-items: start; }
 .rejilla--3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .rejilla--2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 
-.dato { }
-.dato__v { font-size: var(--fs-2xl); font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
-.dato__l { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 2px; }
+/* display:block obligatorio: estas piezas se usan tanto en <div> como dentro de un <a>,
+   y como <span> inline el número y la etiqueta quedaban pegados en la misma línea.
+   Es la quinta aparición del mismo bug; ver la nota de CLAUDE.md. */
+.dato { display: block; }
+.dato__v { display: block; font-size: var(--fs-2xl); font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
+.dato__l { display: block; font-size: var(--fs-xs); color: var(--ink-3); margin-top: 2px; line-height: 1.35; }
+a.dato { color: var(--ink); transition: border-color var(--dur) var(--ease-out); }
+a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 
 /* ===================== Hoy ===================== */
-.hoy__meta { display: grid; gap: var(--s2); margin-top: var(--s4); }
+/* `minmax(0, 1fr)` es obligatorio: un track implícito de grid tiene piso min-content, y
+   .meta-item__t es `nowrap`, así que el piso era el título entero sin truncar. A 390px eso
+   daba 554px de scrollWidth contra 390 de viewport. */
+.hoy__meta { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s2); margin-top: var(--s4); }
 .meta-item {
   display: flex; align-items: center; gap: var(--s3);
   padding: var(--s3) var(--s4);
@@ -133,8 +141,11 @@
 /* La barra de "leer hoy" necesita aire respecto del encabezado de la sección. */
 .hoy__barra { margin-top: var(--s3); }
 
+/* Los enlaces sueltos que son la acción secundaria de un panel necesitan altura táctil. */
+.panel > .enlace-flecha { min-height: 32px; align-items: center; }
+
 /* ===================== Plan ===================== */
-.plan { display: grid; gap: var(--s2); }
+.plan { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s2); }
 .sem {
   display: grid; grid-template-columns: 76px 1fr auto; gap: var(--s4);
   align-items: start;
@@ -208,9 +219,13 @@
 }
 .veredicto--ok { background: var(--ok-bg); color: var(--ok); }
 .veredicto--bad { background: var(--bad-bg); color: var(--bad); }
+/* Recibe foco programático para anunciarse al lector de pantalla; no es un control,
+   así que no dibuja anillo (:focus-visible sólo dispara con teclado). */
+.veredicto:focus { outline: none; }
+.errbox:focus { outline: none; }
 @media (prefers-reduced-motion: reduce) { .veredicto { animation: none; } }
 
-.casos { display: grid; gap: 2px; }
+.casos { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; }
 .caso {
   display: flex; align-items: baseline; gap: var(--s3);
   padding: var(--s2) var(--s3); border-radius: var(--r-sm);
@@ -218,16 +233,46 @@
 }
 .caso--pass { background: var(--ok-bg); color: var(--ok); }
 .caso--fail { background: var(--bad-bg); color: var(--bad); }
-.caso__ico { flex: 0 0 12px; font-weight: 700; }
-.caso__s { word-break: break-all; }
-.caso__exp { margin-left: auto; font-family: var(--sans); font-size: var(--fs-xs); text-align: right; flex: 0 0 auto; }
+/* Una prueba que hace el alumno por su cuenta no es un fallo: preguntó algo y la app
+   contestó. Antes se pintaba roja arriba de todo, debajo de un veredicto verde. */
+.caso--libre { background: var(--sunken); color: var(--ink-2); }
+.caso__ico { flex: 0 0 13px; align-self: center; }
+.caso__s { word-break: break-all; white-space: pre-wrap; }
+/* Las comillas delimitan la cadena para que un espacio de borde se vea como tal. */
+.caso__comillas { opacity: 0.45; }
+.caso__exp {
+  margin-left: auto; font-family: var(--sans); font-size: var(--fs-xs);
+  text-align: right; flex: 1 1 40%; min-width: 0;
+}
+@media (max-width: 640px) {
+  .caso { flex-wrap: wrap; }
+  .caso__exp { flex-basis: 100%; text-align: left; margin-left: 25px; }
+}
+
+/* Los casos que pasan van plegados: acertar producía 20 filas verdes de 730px entre el
+   veredicto y el botón de seguir. */
+.casos-ok { margin-top: var(--s2); }
+.casos-ok > summary {
+  display: flex; align-items: center; gap: var(--s2);
+  cursor: pointer; list-style: none;
+  padding: var(--s2) var(--s3); border-radius: var(--r-sm);
+  font-size: var(--fs-sm); color: var(--ok);
+  background: var(--ok-bg);
+  min-height: 30px;
+}
+.casos-ok > summary::-webkit-details-marker { display: none; }
+.casos-ok > summary:hover { filter: brightness(0.97); }
+.casos-ok[open] > summary { margin-bottom: var(--s1); }
+.casos-ok .casos { padding-left: var(--s3); }
 
 .errbox {
+  display: flex; align-items: flex-start; gap: var(--s3);
   background: var(--bad-bg); color: var(--bad);
   border-radius: var(--r-md); padding: var(--s3) var(--s4);
   font-family: var(--mono); font-size: var(--fs-sm); line-height: 1.5;
   margin-top: var(--s3);
 }
+.errbox .ico { margin-top: 2px; }
 .avisos {
   background: var(--warn-bg); color: var(--warn);
   border-radius: var(--r-md); padding: var(--s3) var(--s4);
@@ -245,8 +290,23 @@
 }
 .honestidad b { color: var(--ink); font-weight: 600; }
 
+/* Safari en iOS hace zoom al enfocar cualquier campo con menos de 16px. En una pantalla
+   donde se escribe notación, ese zoom desarma el layout en cada foco. */
+@media (pointer: coarse) {
+  .control, input.control, textarea.control, select.control,
+  .editor__hl, .editor__ta { font-size: 16px; }
+  .editor__hl, .editor__ta { line-height: 1.6; }
+}
+
 /* ===================== Sandbox ===================== */
-.sb__solapas { display: flex; gap: var(--s2); flex-wrap: wrap; margin-bottom: var(--s5); }
+/* Grilla explícita en vez de wrap: con flex-wrap, "Assembler" quedaba huérfano en una
+   segunda fila a 1440px. */
+.sb__solapas {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s2); margin-bottom: var(--s5);
+}
+@media (max-width: 900px) { .sb__solapas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .sb__solapas { grid-template-columns: minmax(0, 1fr); } }
 .sb__solapa {
   display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
   padding: var(--s2) var(--s3);
@@ -259,8 +319,12 @@
 .sb__solapa strong { font-size: var(--fs-base); font-weight: 500; }
 .sb__solapa small { font-family: var(--mono); font-size: 11px; opacity: 0.8; }
 
-.sb__layout { display: grid; grid-template-columns: 260px 1fr; gap: var(--s5); align-items: start; }
-@media (max-width: 1100px) { .sb__layout { grid-template-columns: 1fr; } }
+/* Misma causa: los items de grid tienen `min-width: auto`, y `white-space: nowrap` en las
+   celdas de .tabla-slr propaga su min-content a través de .scroll-x (que es un bloque plano,
+   no un item de grid) hasta el track. Al abrir la solución, 390 se iba a 477. */
+.sb__layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s5); align-items: start; }
+.sb__layout > * { min-width: 0; }
+@media (max-width: 1100px) { .sb__layout { grid-template-columns: minmax(0, 1fr); } }
 
 .sb__indice {
   border: 1px solid var(--hairline); border-radius: var(--r-md);
@@ -275,7 +339,14 @@
   display: flex; align-items: center; gap: var(--s2);
   font-size: var(--fs-xs); color: var(--ink-3);
 }
-.sb__indice__lista { overflow-y: auto; padding: var(--s2); }
+.sb__indice__lista {
+  overflow-y: auto; padding: var(--s2);
+  /* degradado al pie: la única señal de que había más era una fila cortada al medio */
+  background:
+    linear-gradient(var(--surface) 30%, transparent) top / 100% 24px no-repeat,
+    linear-gradient(transparent, var(--surface) 70%) bottom / 100% 24px no-repeat;
+  background-attachment: local, local;
+}
 .sb__grupo {
   font-size: var(--fs-xs); font-weight: 600; color: var(--ink-3);
   text-transform: uppercase; letter-spacing: 0.03em;
@@ -289,10 +360,12 @@
 }
 .sb__ej:hover { background: var(--sunken); color: var(--ink); text-decoration: none; }
 .sb__ej[aria-current='page'] { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+/* Sin truncar: los cuatro `1k · decimal|octal|hexa|las tres` se recortaban todos a
+   `1k · …`, que es exactamente la mitad que los desambigua. Se envuelve en dos líneas. */
 .sb__ej__num {
   font-family: var(--mono); font-size: 11px; color: var(--ink-3);
-  flex: 0 0 46px; max-width: 46px; text-align: left;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 0 0 58px; max-width: 58px; text-align: left;
+  line-height: 1.3; word-break: break-word; align-self: flex-start; padding-top: 4px;
 }
 /* Sin número, el título ocupa la columna entera en vez de dejar una sangría vacía. */
 .sb__ej--sin-num { padding-left: var(--s2); }
@@ -300,21 +373,29 @@
 .sb__ej__t { flex: 1; padding: 3px 0; }
 .sb__ej__tick { color: var(--ok); font-size: 11px; }
 
+/* Fondo neutro: --accent-bg es el color de "esto está activo" (la fila seleccionada del
+   índice), y la consigna es contenido pasivo. Usar el mismo token confundía los dos roles. */
 .consigna {
-  background: var(--accent-bg); border-radius: var(--r-md);
+  background: var(--sunken); border: 1px solid var(--hairline); border-radius: var(--r-md);
   padding: var(--s4); font-size: var(--fs-md); line-height: 1.6;
   color: var(--ink);
 }
 .acciones { display: flex; gap: var(--s3); align-items: center; flex-wrap: wrap; margin-top: var(--s4); }
 
-.campos { display: grid; gap: var(--s4); margin-top: var(--s5); }
+.campos { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s4); margin-top: var(--s5); }
 
 .teclado { display: flex; gap: var(--s1); flex-wrap: wrap; margin-top: var(--s2); }
 .teclado button {
-  min-width: 30px; height: 26px; padding: 0 var(--s2);
+  min-width: 32px; height: 28px; padding: 0 var(--s2);
   font-family: var(--mono); font-size: var(--fs-sm);
   border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
   background: var(--surface); color: var(--ink);
+}
+/* En el celular estas teclas son el motivo por el que el teclado existe: tienen que
+   cumplir el mínimo táctil, no la densidad de escritorio. */
+@media (pointer: coarse) {
+  .teclado button { min-width: 44px; height: 44px; font-size: var(--fs-base); }
+  .teclado { gap: var(--s2); }
 }
 .teclado button:hover { background: var(--sunken); }
 
@@ -323,6 +404,9 @@
 .editor__hl, .editor__ta {
   margin: 0; border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
   font-family: var(--mono); font-size: var(--fs-sm); line-height: 1.7;
+  /* Las dos capas tienen que medir idéntico: si una forma ligaduras y la otra no, el
+     cursor se desincroniza del texto pintado. */
+  font-variant-ligatures: none;
   padding: var(--s3); white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;
   min-height: calc(var(--filas) * 1.7em + var(--s3) * 2);
 }
@@ -349,6 +433,16 @@
   text-align: center; white-space: nowrap;
 }
 .tabla-slr th { background: var(--sunken); font-weight: 500; }
+/* La columna de estado queda fija: sin ella, al scrollear la tabla se pierde de qué fila es cada celda. */
+.tabla-slr thead th:first-child, .tabla-slr tbody td:first-child {
+  position: sticky; left: 0; background: var(--sunken); z-index: 1;
+}
+/* Señal de que hay más a la derecha. */
+.scroll-x { background:
+  linear-gradient(to right, var(--surface) 30%, transparent) left / 28px 100% no-repeat,
+  linear-gradient(to left, var(--surface) 30%, transparent) right / 28px 100% no-repeat;
+  background-attachment: local, local;
+}
 .tabla-slr td.ir { background: var(--sunken); }
 .tabla-slr td.conf { background: var(--bad-bg); color: var(--bad); font-weight: 500; }
 
@@ -393,7 +487,7 @@
 }
 .entrada__marca p { font-size: var(--fs-md); color: var(--ink-2); }
 .entrada__lista {
-  display: grid; gap: var(--s3);
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s3);
   margin: var(--s6) 0;
   font-size: var(--fs-md); color: var(--ink-2); line-height: 1.55;
 }
@@ -457,3 +551,33 @@
 }
 .tras-resolver__sub { color: var(--ok); opacity: 0.85; }
 .tras-resolver p:only-child { font-size: var(--fs-md); font-weight: 500; color: var(--ok); }
+
+/* ===================== Escalones de ayuda =====================
+   La distancia entre "no me sale" y "acá está la respuesta" es la variable pedagógica
+   principal de una app de estudio. Antes era un clic que entregaba todo. */
+.escalones { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s2); margin-top: var(--s5); }
+.escalon > summary {
+  display: flex; align-items: center; gap: var(--s2);
+  cursor: pointer; list-style: none;
+  min-height: 34px; padding: var(--s2) var(--s3);
+  border: 1px solid var(--hairline); border-radius: var(--r-sm);
+  font-size: var(--fs-base); color: var(--accent);
+  transition: border-color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out);
+}
+.escalon > summary::-webkit-details-marker { display: none; }
+.escalon > summary:hover { border-color: var(--hairline-strong); background: var(--sunken); }
+.escalon[open] > summary { border-color: var(--hairline-strong); background: var(--sunken); }
+.escalon__costo { margin-left: auto; font-size: var(--fs-xs); color: var(--ink-3); }
+.escalon__cuerpo { padding: var(--s3) var(--s3) 0; }
+.escalon__cuerpo > p { font-size: var(--fs-md); line-height: 1.6; color: var(--ink); }
+
+/* Aviso de desfase entre la semana que estudiás y la que va la cursada. Es una sugerencia,
+   no una corrección: la app no cambia nada por su cuenta. */
+.desfase {
+  display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap;
+  padding: var(--s3) var(--s4); margin-bottom: var(--s5);
+  background: var(--warn-bg); border-radius: var(--r-md);
+  color: var(--warn);
+}
+.desfase p { flex: 1; min-width: 220px; font-size: var(--fs-base); line-height: 1.5; }
+.desfase b { font-weight: 600; }
