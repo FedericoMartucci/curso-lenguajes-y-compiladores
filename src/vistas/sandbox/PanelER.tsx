@@ -15,7 +15,7 @@ import Icono from '../../ui/Icono.tsx'
 export default function PanelER({ id, ir }: { id: string; ir: (r: Ruta) => void }) {
   const e = ER.find((x) => x.id === id) ?? (ER[0] as typeof ER[number])
   const { registrarIntento } = useProgreso()
-  const [campos, set] = useBorrador('er', e.id, { cj: e.cj, er: '', propia: '' })
+  const [campos, set] = useBorrador('er', e.id, { cj: '', er: '', propia: '' })
   const [res, setRes] = useState<ResultadoCasos | null>(null)
   const [extra, setExtra] = useState<CasoCorrido[]>([])
   // se guarda la expresión compilada para poder explicar por qué falla cada caso
@@ -53,6 +53,7 @@ export default function PanelER({ id, ir }: { id: string; ir: (r: Ruta) => void 
         <Campo
           label="Conjuntos"
           nota="uno por línea: NOMBRE  definición"
+          ayuda="Declarar los conjuntos es parte del ejercicio: la cátedra los pide en el bloque CONJUNTO."
         >
           {(p) => <textarea {...p} className="control" rows={3} value={cj} onChange={(ev) => set('cj', ev.target.value)} />}
         </Campo>

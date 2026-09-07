@@ -25,7 +25,7 @@ const PLANTILLA = `ACCION LEXICA
 export default function PanelLex({ id, ir }: { id: string; ir: (r: Ruta) => void }) {
   const e = LEX.find((x) => x.id === id) ?? (LEX[0] as typeof LEX[number])
   const { registrarIntento } = useProgreso()
-  const [campos, set] = useBorrador('lex', e.id, { cj: e.cj, er: '', codigo: PLANTILLA })
+  const [campos, set] = useBorrador('lex', e.id, { cj: '', er: '', codigo: PLANTILLA })
   const [res, setRes] = useState<ResultadoCasos | null>(null)
   const refEr = useRef<HTMLInputElement>(null)
 
@@ -62,7 +62,10 @@ export default function PanelLex({ id, ir }: { id: string; ir: (r: Ruta) => void
       />
 
       <div className="campos">
-        <Campo label="Conjuntos" nota="uno por línea">
+        <Campo
+          label="Conjuntos" nota="uno por línea"
+          ayuda="Declarar los conjuntos es parte del ejercicio: la cátedra los pide en el bloque CONJUNTO."
+        >
           {(p) => <textarea {...p} className="control" rows={3} value={cj} onChange={(ev) => set('cj', ev.target.value)} />}
         </Campo>
 
@@ -113,6 +116,9 @@ export default function PanelLex({ id, ir }: { id: string; ir: (r: Ruta) => void
       <Escalones>
         <Escalon titulo="Una pista" costo="no revela la respuesta">
           <p>La expresión regular reconoce la <b>forma</b>; la acción léxica valida la <b>cota</b>. Si fallan casos con forma válida, el problema está en la condición del if; si fallan casos con forma inválida, está en la expresión. Cada fila roja te dice cuál de las dos.</p>
+        </Escalon>
+        <Escalon titulo="Ver los conjuntos del modelo" costo="revela parte">
+          <pre>{e.cj || '(este ejercicio no usa conjuntos)'}</pre>
         </Escalon>
         <Escalon titulo="Ver una respuesta modelo" costo="revela todo">
           <pre>{'ER:  ' + e.mER + '\n\n' + codigoModelo(e.atr, e.op, e.cota)}</pre>

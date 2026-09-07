@@ -22,6 +22,7 @@ import { ASM_EJ } from '../src/data/ejercicios/asm.ts'
 import { parseGrammar } from '../src/engines/earley.ts'
 import { tablaSLR } from '../src/engines/parsing.ts'
 import { testIntermedia } from '../src/engines/polaca.ts'
+import { testArbol, parseArbol, postOrden } from '../src/engines/arbol.ts'
 import { testAssembler } from '../src/engines/coprocesador.ts'
 
 let fails = 0
@@ -71,13 +72,38 @@ PARSING_EJ.forEach((e) => {
 
 console.log('Código intermedio (ejecución)…')
 GCI_EJ.forEach((e) => {
-  const r = testIntermedia(e.m, e.casos, e.modo)
-  casos += e.casos.length
-  if (!r.ok) {
-    fails++
-    console.log(`  ✗ [GCI ${e.id}] ${e.t}`)
-    r.resultados.filter((x) => !x.pass).forEach((x) =>
-      console.log('      ' + (x.error || JSON.stringify((x.detalles || []).filter((d) => !d.pass)))))
+  // un ejercicio puede pedir varias notaciones de la misma sentencia: todas tienen que validar
+  e.notaciones.forEach((n) => {
+    const modelo = e.m[n]
+    if (!modelo) {
+      fails++
+      console.log(`  ✗ [GCI ${e.id}] falta la respuesta modelo de "${n}"`)
+      return
+    }
+    const r = n === 'arbol' ? testArbol(modelo, e.casos) : testIntermedia(modelo, e.casos, n)
+    casos += e.casos.length
+    if (!r.ok) {
+      fails++
+      console.log(`  ✗ [GCI ${e.id} · ${n}] ${e.t}`)
+      r.resultados.filter((x) => !x.pass).forEach((x) =>
+        console.log('      ' + (x.error || JSON.stringify((x.detalles || []).filter((d) => !d.pass)))))
+    }
+  })
+  // el árbol tiene una propiedad que se puede verificar sola: post-orden = la polaca
+  if (e.notaciones.includes('arbol') && e.notaciones.includes('polaca')) {
+    const arbol = e.m['arbol'], polaca = e.m['polaca']
+    if (arbol && polaca) {
+      const post = postOrden(parseArbol(arbol)).join(' ')
+      const orig = polaca.trim().replace(/\s+/g, ' ')
+      // se comparan como multiconjuntos: las dos convenciones de asignación mueven el destino
+      const norm = (x: string) => x.split(' ').sort().join(' ')
+      if (norm(post) !== norm(orig)) {
+        fails++
+        console.log(`  ✗ [GCI ${e.id}] el post-orden del árbol no coincide con la polaca`)
+        console.log(`      árbol:  ${post}`)
+        console.log(`      polaca: ${orig}`)
+      }
+    }
   }
 })
 

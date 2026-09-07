@@ -86,7 +86,10 @@ export interface EjercicioParsing extends EjercicioBase {
 }
 
 /* ---------- Código intermedio ---------- */
-export type ModoGCI = 'polaca' | 'tercetos'
+/* Las tres notaciones intermedias que toma la cátedra. Los enunciados suelen pedir la misma
+   sentencia en las tres: "Representar la sentencia … en polaca inversa, en árbol sintáctico
+   y en tercetos". */
+export type ModoGCI = 'polaca' | 'tercetos' | 'arbol'
 
 /** Valores de variables antes y después de ejecutar. */
 export type Entorno = Record<string, number>
@@ -97,10 +100,12 @@ export interface CasoEjecucion {
 }
 
 export interface EjercicioGCI extends EjercicioBase {
-  modo: ModoGCI
+  /** Qué notaciones pide el enunciado. Se resuelve cuando pasan TODAS. */
+  notaciones: ModoGCI[]
   /** El programa fuente a traducir. */
   programa: string
-  m: string
+  /** Respuesta modelo por notación. Tiene que haber una por cada entrada de `notaciones`. */
+  m: Partial<Record<ModoGCI, string>>
   casos: CasoEjecucion[]
 }
 

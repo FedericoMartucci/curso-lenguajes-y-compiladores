@@ -103,6 +103,10 @@ export const META: Record<TipoEjercicio, Record<string, MetaEjercicio>> = {
     'p3-coord': { grupo: EX, num: 'Parcial 2C24', orden: 310 }
   },
   gci: {
+    'p4-arbol-simple': { grupo: P4, num: 'árbol · 1', orden: 105 },
+    'p4-avg-tres': { grupo: P4, num: 'AVG · las 3', orden: 175 },
+    'p4-prom-tres': { grupo: EX, num: 'prom · las 3', orden: 505 },
+    'p5-min-arbol': { grupo: P5, num: 'Mínimo · árbol', orden: 315 },
     'p4-suma': { grupo: P4, num: 'asignación simple', orden: 110 },
     'p4-prec': { grupo: P4, num: 'precedencia', orden: 120 },
     'p4-paren': { grupo: P4, num: 'paréntesis', orden: 130 },
