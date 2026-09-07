@@ -1,12 +1,14 @@
 /* Shell de aplicación: barra lateral fija + columna de contenido.
    La responsividad es estructural (la barra colapsa a drawer), nunca tipografía fluida. */
 
-.app { display: flex; min-height: 100dvh; }
+/* svh y no dvh: dvh crece y se achica con las barras del navegador, y en el medio de un
+   scroll eso mueve el piso. svh es el alto con las barras visibles, que es el caso peor. */
+.app { display: flex; min-height: 100svh; }
 
 /* ============ Barra lateral ============ */
 .lateral {
   width: var(--sidebar); flex: 0 0 var(--sidebar);
-  height: 100dvh; position: sticky; top: 0;
+  height: 100svh; position: sticky; top: 0;
   display: flex; flex-direction: column;
   background: var(--sunken);
   border-right: 1px solid var(--hairline);
@@ -127,7 +129,9 @@
 .principal {
   flex: 1;
   width: 100%; max-width: 980px; margin: 0 auto;
-  padding: var(--s6) var(--s7) var(--s8);
+  /* El respiro de abajo es generoso a propósito: con la barra lateral fija, un contenido
+     que termina pegado al borde se lee como cortado aunque haya llegado al final. */
+  padding: var(--s6) var(--s7) calc(var(--s8) * 2);
 }
 .principal--ancho { max-width: 1200px; }
 

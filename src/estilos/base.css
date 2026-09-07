@@ -2,7 +2,12 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  /* Para que scrollIntoView no deje lo que trae pegado al borde de arriba o de abajo. */
+  scroll-padding-top: var(--s5);
+  scroll-padding-bottom: var(--s7);
+}
 
 body {
   margin: 0;

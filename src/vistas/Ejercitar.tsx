@@ -14,6 +14,8 @@ import Pill from '../ui/Pill.tsx'
 import { Barra } from '../ui/Progreso.tsx'
 import Icono from '../ui/Icono.tsx'
 import { SkeletonTarjeta } from '../ui/Cargando.tsx'
+import Responder from '../componentes/Responder.tsx'
+import Selector from '../ui/Selector.tsx'
 
 type Modo = 'vencidas' | 'todas' | 'nuevas'
 
@@ -131,20 +133,22 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
           </button>
         ))}
       </div>
-      <select className="control control--sans" style={{ width: 'auto', height: 28 }}
-              value={tipo} onChange={(e) => setTipo(e.target.value as TipoPregunta | 'todos')}
-              aria-label="Tipo de pregunta">
-        <option value="todos">Todos los tipos</option>
-        {(Object.keys(TIPO_LABEL) as TipoPregunta[]).map((t) => (
-          <option key={t} value={t}>{TIPO_LABEL[t]}</option>
-        ))}
-      </select>
-      <select className="control control--sans" style={{ width: 'auto', height: 28 }}
-              value={String(mod)} onChange={(e) => setMod(e.target.value === 'todos' ? 'todos' : Number(e.target.value))}
-              aria-label="Módulo">
-        <option value="todos">Todos los módulos</option>
-        {modulos.map((m) => <option key={m.id} value={m.id}>{m.id} · {m.titulo}</option>)}
-      </select>
+      <Selector
+        etiqueta="Tipo de pregunta" valor={tipo} ancho={190}
+        onCambio={(v) => setTipo(v as TipoPregunta | 'todos')}
+        opciones={[
+          { valor: 'todos', etiqueta: 'Todos los tipos' },
+          ...(Object.keys(TIPO_LABEL) as TipoPregunta[]).map((t) => ({ valor: t, etiqueta: TIPO_LABEL[t] }))
+        ]}
+      />
+      <Selector
+        etiqueta="Módulo" valor={String(mod)} ancho={280}
+        onCambio={(v) => setMod(v === 'todos' ? 'todos' : Number(v))}
+        opciones={[
+          { valor: 'todos', etiqueta: 'Todos los módulos' },
+          ...modulos.map((m) => ({ valor: String(m.id), etiqueta: `${m.id} · ${m.titulo}` }))
+        ]}
+      />
     </div>
   )
 
@@ -255,6 +259,9 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
           </div>
 
           <div className="tarjeta__q" dangerouslySetInnerHTML={{ __html: actual.q }} />
+
+          <Responder clave={actual.qid} modelo={actual.a} revelada={revelada}
+                     filas={actual.tipo === 'practico' ? 6 : 3} />
 
           {!revelada ? (
             <div className="tira" style={{ marginTop: 'var(--s5)' }}>

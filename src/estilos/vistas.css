@@ -678,3 +678,34 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
   .requisito { grid-template-columns: auto minmax(0, 1fr); }
   .requisito .barra, .requisito .btn { grid-column: 1 / -1; width: 100%; }
 }
+
+/* ===================== Responder por escrito ===================== */
+.responder { margin-top: var(--s5); }
+.responder__campo { font-family: var(--mono); }
+.responder__campo:read-only { background: var(--sunken); color: var(--ink-2); }
+.responder__aviso {
+  font-size: var(--fs-sm); color: var(--ink-3); margin-top: var(--s2); line-height: 1.5;
+}
+
+.comparacion {
+  display: flex; gap: var(--s3); align-items: flex-start;
+  margin-top: var(--s3); padding: var(--s3) var(--s4);
+  border-radius: var(--r-md); font-size: var(--fs-sm); line-height: 1.55;
+}
+.comparacion--ok { background: var(--ok-bg); color: var(--ok); }
+.comparacion--mal { background: var(--bad-bg); color: var(--bad); }
+.comparacion--asistida { background: var(--sunken); color: var(--ink-2); border: 1px solid var(--hairline); }
+.comparacion__t { font-weight: 600; }
+.comparacion__d { margin-top: 2px; }
+
+.conceptos {
+  display: flex; flex-wrap: wrap; gap: var(--s2);
+  margin: var(--s3) 0 0; padding: 0; list-style: none;
+}
+.concepto {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--fs-xs); padding: 2px var(--s2);
+  border: 1px solid var(--hairline-strong); border-radius: var(--r-full);
+  color: var(--ink-3);
+}
+.concepto--si { color: var(--ok); border-color: var(--ok); }

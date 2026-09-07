@@ -9,7 +9,7 @@ import { calcularAvance } from '../lib/hoy.ts'
 import { coberturaContenido } from '../lib/curso.ts'
 import Cabecera from './Cabecera.tsx'
 import Boton from '../ui/Boton.tsx'
-import Campo from '../ui/Campo.tsx'
+import Selector from '../ui/Selector.tsx'
 
 const TEMAS: { id: Tema; label: string }[] = [
   { id: 'light', label: 'Claro' },
@@ -61,16 +61,13 @@ export default function Ajustes() {
           solo el tamaño de la meta diaria.
         </p>
         <div style={{ maxWidth: 280 }}>
-          <Campo label="Lecciones por día">
-            {(p) => (
-              <select {...p} className="control control--sans" value={progreso.ritmo}
-                      onChange={(e) => setRitmo(Number(e.target.value))}>
-                {[1, 2, 3, 4, 5, 6, 8].map((n) => (
-                  <option key={n} value={n}>{n} {n === 1 ? 'lección' : 'lecciones'}</option>
-                ))}
-              </select>
-            )}
-          </Campo>
+          <Selector
+            etiqueta="Lecciones por día" valor={String(progreso.ritmo)} ancho="100%"
+            onCambio={(v) => setRitmo(Number(v))}
+            opciones={[1, 2, 3, 4, 5, 6, 8].map((n) => ({
+              valor: String(n), etiqueta: `${n} ${n === 1 ? 'lección' : 'lecciones'} por día`
+            }))}
+          />
         </div>
       </section>
 

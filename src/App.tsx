@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react'
 import { useRuta } from './lib/router.ts'
 import type { Ruta } from './lib/router.ts'
 import { ProveedorSesion, useSesion } from './lib/sesion.tsx'
@@ -28,6 +28,20 @@ import Icono from './ui/Icono.tsx'
 const Practicas = lazy(() => import('./vistas/Practicas.tsx'))
 const Clases = lazy(() => import('./vistas/Clases.tsx'))
 
+/* Dos rutas con la misma clave son "la misma pantalla" y no reinician el scroll.
+   En el sandbox, cambiar de ejercicio dentro de una solapa no reinicia; cambiar de solapa sí,
+   porque es otra práctica y otro contenido arriba. */
+function claveDePantalla(r: Ruta): string {
+  switch (r.v) {
+    case 'sandbox': return 'sandbox:' + (r.tipo ?? '')
+    case 'leccion': return 'leccion:' + r.id
+    case 'practicas': return 'practicas:' + (r.id ?? '')
+    case 'clases': return 'clases:' + (r.id ?? '')
+    case 'evaluacion': return 'evaluacion:' + r.n
+    default: return r.v
+  }
+}
+
 const TITULOS: Record<string, string> = {
   inicio: 'Hoy', plan: 'Plan de estudio', evaluacion: 'Evaluación', leccion: 'Teoría', modulo: 'Teoría',
   ejercitar: 'Ejercitación', examen: 'Modo examen', sandbox: 'Sandbox',
@@ -44,13 +58,22 @@ function Contenido() {
 
   const hoy = useMemo(() => calcularHoy(progreso), [progreso])
 
-  // al cambiar de vista: arriba de todo, y el título del documento acompaña
+  /* Volver arriba sólo cuando cambia la PANTALLA, no cuando cambia el contenido dentro de
+     ella. Pasar al ejercicio siguiente en el sandbox te deja donde estabas —el panel está a
+     media página— mientras que abrir otra lección sí arranca desde el principio, porque se
+     lee de corrido. La clave describe "qué pantalla es esto"; si no cambia, no se scrollea. */
+  const pantalla = claveDePantalla(ruta)
+  const anterior = useRef(pantalla)
+
   useEffect(() => {
-    window.scrollTo(0, 0)
+    if (anterior.current !== pantalla) {
+      window.scrollTo(0, 0)
+      anterior.current = pantalla
+    }
     setDrawer(false)
     const t = TITULOS[ruta.v] ?? ''
     document.title = t ? `${t} · Lenguajes y Compiladores` : 'Lenguajes y Compiladores'
-  }, [ruta])
+  }, [ruta, pantalla])
 
   // atajos globales. Se ignoran mientras escribís en un campo, salvo ⌘K y Escape.
   useEffect(() => {

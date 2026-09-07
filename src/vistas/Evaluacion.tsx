@@ -12,6 +12,7 @@ import Pill from '../ui/Pill.tsx'
 import Icono from '../ui/Icono.tsx'
 import { Barra } from '../ui/Progreso.tsx'
 import { SkeletonTarjeta } from '../ui/Cargando.tsx'
+import Responder from '../componentes/Responder.tsx'
 import NoEncontrado from './NoEncontrado.tsx'
 
 /* Rendir para cerrar la semana.
@@ -157,6 +158,9 @@ export default function Evaluacion({ n, ir }: { n: number; ir: (r: Ruta) => void
               </span>
             </div>
             <div className="tarjeta__q" dangerouslySetInnerHTML={{ __html: actual.q }} />
+
+            <Responder clave={actual.qid} modelo={actual.a} revelada={revelada}
+                       filas={actual.tipo === 'practico' ? 6 : 3} />
 
             {!revelada ? (
               <div className="tira" style={{ marginTop: 'var(--s5)' }}>

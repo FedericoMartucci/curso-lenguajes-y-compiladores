@@ -5,12 +5,14 @@ interface BarraProps {
   alta?: boolean
   /** Descripción para lector de pantalla. Si falta, la barra queda decorativa. */
   etiqueta?: string
+  /** Muestra el porcentaje al lado. Por defecto sí: una barra sin número obliga a estimar. */
+  porcentaje?: boolean
 }
 
 /** Mide siempre al alumno, nunca al contenido. */
-export function Barra({ valor, tono = 'acento', alta = false, etiqueta }: BarraProps) {
+export function Barra({ valor, tono = 'acento', alta = false, etiqueta, porcentaje = true }: BarraProps) {
   const pct = Math.round(Math.max(0, Math.min(1, valor)) * 100)
-  return (
+  const barra = (
     <div
       className={`barra${tono === 'ok' ? ' barra--ok' : ''}${alta ? ' barra--alta' : ''}`}
       role={etiqueta ? 'progressbar' : undefined}
@@ -20,6 +22,13 @@ export function Barra({ valor, tono = 'acento', alta = false, etiqueta }: BarraP
       aria-label={etiqueta}
     >
       <i style={{ ['--avance' as string]: pct / 100 }} />
+    </div>
+  )
+  if (!porcentaje) return barra
+  return (
+    <div className="barra-con-pct">
+      {barra}
+      <span className={'barra__pct' + (pct === 100 ? ' barra__pct--full' : '')}>{pct}%</span>
     </div>
   )
 }

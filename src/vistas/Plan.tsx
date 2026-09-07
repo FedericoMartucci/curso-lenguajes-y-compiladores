@@ -7,6 +7,7 @@ import Cabecera from './Cabecera.tsx'
 import Enlace from '../componentes/Enlace.tsx'
 import Boton from '../ui/Boton.tsx'
 import Pill from '../ui/Pill.tsx'
+import Selector from '../ui/Selector.tsx'
 import { Barra } from '../ui/Progreso.tsx'
 import Icono from '../ui/Icono.tsx'
 
@@ -41,18 +42,13 @@ export default function Plan({ ir }: { ir: (r: Ruta) => void }) {
         meta={
           <>
             <Pill tono="acento">Semana activa: {progreso.semana}</Pill>
-            <label className="campo__label" style={{ marginBottom: 0, gap: 'var(--s2)' }}>
-              <span>Ritmo</span>
-              <select
-                className="control control--sans" style={{ width: 'auto', height: 28 }}
-                value={progreso.ritmo} onChange={(e) => setRitmo(Number(e.target.value))}
-                aria-label="Lecciones por día"
-              >
-                {[1, 2, 3, 4, 5, 6, 8].map((n) => (
-                  <option key={n} value={n}>{n} {n === 1 ? 'lección' : 'lecciones'} por día</option>
-                ))}
-              </select>
-            </label>
+            <Selector
+              etiqueta="Lecciones por día" valor={String(progreso.ritmo)} ancho={200}
+              onCambio={(v) => setRitmo(Number(v))}
+              opciones={[1, 2, 3, 4, 5, 6, 8].map((n) => ({
+                valor: String(n), etiqueta: `${n} ${n === 1 ? 'lección' : 'lecciones'} por día`
+              }))}
+            />
           </>
         }
       />

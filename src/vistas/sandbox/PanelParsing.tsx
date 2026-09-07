@@ -15,6 +15,7 @@ import { Escalones, Escalon } from '../../componentes/Escalones.tsx'
 import TablaSLR from '../../componentes/TablaSLR.tsx'
 import Campo from '../../ui/Campo.tsx'
 import Boton from '../../ui/Boton.tsx'
+import Selector from '../../ui/Selector.tsx'
 import Icono from '../../ui/Icono.tsx'
 
 /* El ejercicio de parsing se corrige por etapas, no de una.
@@ -221,16 +222,21 @@ export default function PanelParsing({ id, ir }: { id: string; ir: (r: Ruta) => 
       {/* ---------------- etapa 5: conflictos ---------------- */}
       {activa === 'conflictos' && (
         <>
-          <Campo label="¿La gramática es SLR?" ayuda="Es decir: ¿la tabla queda sin conflictos?">
-            {(p) => (
-              <select {...p} className="control control--sans" style={{ maxWidth: 300 }}
-                      value={campos['esSLR'] ?? ''} onChange={(ev) => set('esSLR', ev.target.value)}>
-                <option value="">Elegí una opción…</option>
-                <option value="si">Sí, no hay conflictos</option>
-                <option value="no">No, hay conflictos</option>
-              </select>
-            )}
-          </Campo>
+          <div>
+            <p className="campo__label">
+              <span>¿La gramática es SLR?</span>
+              <em>es decir: ¿la tabla queda sin conflictos?</em>
+            </p>
+            <Selector
+              etiqueta="¿La gramática es SLR?" valor={campos['esSLR'] ?? ''} ancho={300}
+              onCambio={(v) => set('esSLR', v)}
+              opciones={[
+                { valor: '', etiqueta: 'Elegí una opción…' },
+                { valor: 'si', etiqueta: 'Sí, no hay conflictos' },
+                { valor: 'no', etiqueta: 'No, hay conflictos' }
+              ]}
+            />
+          </div>
           {res.conflictos && (
             <>
               <p className={'veredicto veredicto--' + (res.conflictos.ok ? 'ok' : 'bad')} role="status">

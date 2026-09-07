@@ -9,6 +9,8 @@ import Enlace from '../componentes/Enlace.tsx'
 import Boton from '../ui/Boton.tsx'
 import Pill from '../ui/Pill.tsx'
 import { Barra } from '../ui/Progreso.tsx'
+import Responder from '../componentes/Responder.tsx'
+import Selector from '../ui/Selector.tsx'
 import Icono from '../ui/Icono.tsx'
 
 type Alcance = 'I' | 'II' | 'todo'
@@ -104,12 +106,15 @@ export default function Examen({ ir }: { ir: (r: Ruta) => void }) {
         />
         <div className="panel" style={{ maxWidth: 640 }}>
           <p className="campo__label">Qué entra</p>
-          <div className="segmentado" role="group" aria-label="Alcance del examen" style={{ marginBottom: 'var(--s5)' }}>
-            {(['I', 'II', 'todo'] as Alcance[]).map((a) => (
-              <button key={a} type="button" aria-pressed={alcance === a} onClick={() => setAlcance(a)}>
-                {CONFIG[a].titulo}
-              </button>
-            ))}
+          <div style={{ marginBottom: 'var(--s5)' }}>
+            <Selector
+              etiqueta="Alcance del examen" valor={alcance} ancho={260}
+              onCambio={(v) => setAlcance(v as Alcance)}
+              opciones={(['I', 'II', 'todo'] as Alcance[]).map((a) => ({
+                valor: a, etiqueta: CONFIG[a].titulo,
+                detalle: `${CONFIG[a].preguntas} preguntas · ${CONFIG[a].minutos} minutos`
+              }))}
+            />
           </div>
 
           <div className="rejilla rejilla--3" style={{ marginBottom: 'var(--s5)' }}>
@@ -209,6 +214,9 @@ export default function Examen({ ir }: { ir: (r: Ruta) => void }) {
             </span>
           </div>
           <div className="tarjeta__q" dangerouslySetInnerHTML={{ __html: q.q }} />
+
+          <Responder clave={q.qid} modelo={q.a} revelada={revelada}
+                     filas={q.tipo === 'practico' ? 6 : 3} />
 
           {!revelada ? (
             <div className="tira" style={{ marginTop: 'var(--s5)' }}>
