@@ -14,6 +14,11 @@ Thumbs.db
 .vscode/
 .idea/
 
+# variables de entorno (la .env.example sí se versiona)
+.env
+.env.local
+.env.*.local
+
 # Vercel
 .vercel
 

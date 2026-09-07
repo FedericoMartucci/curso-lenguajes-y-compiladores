@@ -15,10 +15,11 @@
 .lateral__fijo { padding: var(--s4) var(--s4) var(--s3); }
 .lateral__scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding-bottom: var(--s5); }
 .lateral__pie {
-  padding: var(--s3) var(--s4);
+  padding: var(--s2) var(--s3) var(--s3);
   border-top: 1px solid var(--hairline);
-  display: flex; align-items: center; gap: var(--s2);
+  display: grid; gap: var(--s1);
 }
+.lateral__pie .sync { padding: 0 var(--s2); }
 
 .marca { display: block; margin-bottom: var(--s4); }
 .marca:hover { text-decoration: none; }

@@ -2,6 +2,9 @@ import { useState, useMemo } from 'react'
 import { useTheme } from '../lib/hooks.ts'
 import type { Tema } from '../lib/hooks.ts'
 import { useProgreso } from '../lib/progreso.tsx'
+import { useSesion } from '../lib/sesion.tsx'
+import { nombreDe, avatarDe } from '../lib/supabase.ts'
+import EstadoSync from '../componentes/EstadoSync.tsx'
 import { calcularAvance } from '../lib/hoy.ts'
 import { coberturaContenido } from '../lib/curso.ts'
 import Cabecera from './Cabecera.tsx'
@@ -25,7 +28,8 @@ const QUE_BORRA: Record<Borrado, string> = {
 
 export default function Ajustes() {
   const [tema, setTema] = useTheme()
-  const { progreso, setRitmo, reiniciar } = useProgreso()
+  const { progreso, setRitmo, reiniciar, sincronizarAhora } = useProgreso()
+  const { usuario, salir, estado } = useSesion()
   const [confirmar, setConfirmar] = useState<Borrado | null>(null)
 
   const avance = useMemo(() => calcularAvance(progreso), [progreso])
@@ -72,10 +76,36 @@ export default function Ajustes() {
 
       <section className="panel" style={{ marginTop: 'var(--s4)' }} aria-labelledby="h-cuenta">
         <h3 id="h-cuenta" className="panel__titulo">Tu cuenta</h3>
-        <p style={{ color: 'var(--ink-2)', fontSize: 'var(--fs-md)', lineHeight: 1.6 }}>
-          Tu progreso se guarda en este navegador y se sincroniza con tu cuenta de Google cuando hay
-          conexión, así que podés seguir desde otra máquina y no perdés nada si borrás los datos del sitio.
-        </p>
+
+        {usuario ? (
+          <>
+            <div className="cuenta" style={{ margin: 'var(--s4) 0' }}>
+              {avatarDe(usuario)
+                ? <img className="cuenta__avatar" src={avatarDe(usuario) as string} alt="" width={32} height={32} />
+                : <span className="cuenta__avatar" aria-hidden="true" />}
+              <span className="cuenta__cuerpo">
+                <span className="cuenta__nombre">{nombreDe(usuario)}</span>
+                <span className="cuenta__mail">{usuario.email}</span>
+              </span>
+            </div>
+            <p style={{ color: 'var(--ink-2)', fontSize: 'var(--fs-md)', lineHeight: 1.6, marginBottom: 'var(--s4)' }}>
+              Tu progreso vive en este navegador y se copia a tu cuenta, así que podés seguir desde otra
+              máquina y no perdés nada si borrás los datos del sitio. La app funciona sin conexión: se
+              sincroniza cuando vuelve la red.
+            </p>
+            <div className="tira">
+              <EstadoSync detallado />
+              <Boton tamaño="sm" onClick={sincronizarAhora}>Sincronizar ahora</Boton>
+              <Boton tamaño="sm" variante="ghost" onClick={() => { void salir() }}>Cerrar sesión</Boton>
+            </div>
+          </>
+        ) : (
+          <p style={{ color: 'var(--ink-2)', fontSize: 'var(--fs-md)', lineHeight: 1.6 }}>
+            {estado === 'sin-backend'
+              ? 'Esta copia corre sin cuenta: tu progreso queda solo en este navegador.'
+              : 'No hay una sesión activa.'}
+          </p>
+        )}
       </section>
 
       <section className="panel" style={{ marginTop: 'var(--s4)' }} aria-labelledby="h-datos">

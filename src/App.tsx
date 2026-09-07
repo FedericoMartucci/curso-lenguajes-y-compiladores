@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
 import { useRuta } from './lib/router.ts'
+import { ProveedorSesion, useSesion } from './lib/sesion.tsx'
 import { ProveedorProgreso, useProgreso } from './lib/progreso.tsx'
 import { calcularHoy } from './lib/hoy.ts'
 import { TOTAL_EJERCICIOS } from './lib/ejercicios.ts'
@@ -14,6 +15,7 @@ import Sandbox from './vistas/Sandbox.tsx'
 import Mesa from './vistas/Mesa.tsx'
 import Ajustes from './vistas/Ajustes.tsx'
 import NoEncontrado from './vistas/NoEncontrado.tsx'
+import Entrada from './vistas/Entrada.tsx'
 import { SkeletonProsa } from './ui/Cargando.tsx'
 
 /* Estas dos arrastran datos pesados (279 kB de transcripciones y 66 kB de enunciados)
@@ -139,10 +141,35 @@ function Contenido() {
   }
 }
 
-export default function App() {
+/* El login es obligatorio cuando hay backend configurado. Sin variables de entorno
+   (desarrollo local, tests, `npm run smoke`) la app arranca directo en modo local. */
+function Puerta() {
+  const { estado } = useSesion()
+
+  if (estado === 'cargando') {
+    return (
+      <div className="entrada">
+        <div className="entrada__caja" aria-busy="true" aria-label="Verificando la sesión">
+          <div className="skel" style={{ height: 28, width: 260, marginBottom: 'var(--s4)' }} />
+          <div className="skel" style={{ height: 15, width: 320 }} />
+        </div>
+      </div>
+    )
+  }
+
+  if (estado === 'anonimo') return <Entrada />
+
   return (
     <ProveedorProgreso>
       <Contenido />
     </ProveedorProgreso>
+  )
+}
+
+export default function App() {
+  return (
+    <ProveedorSesion>
+      <Puerta />
+    </ProveedorSesion>
   )
 }

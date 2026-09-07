@@ -8,6 +8,8 @@ import type { Progreso, Tarjeta, ProgresoEjercicio, Calificacion, ProgresoV1 } f
 import type { TipoEjercicio } from '../tipos/ejercicios.ts'
 import { calificar as calificarTarjeta, vencida } from './srs.ts'
 import { leerGuardado, escribirGuardado } from './hooks.ts'
+import { useSesion } from './sesion.tsx'
+import { sincronizar } from './sync.ts'
 
 const CLAVE = 'lyc-progreso'
 const CLAVE_VIEJA_PREGUNTAS = 'lyc-ejerc'
@@ -121,13 +123,26 @@ export interface StoreProgreso {
   /* mantenimiento */
   reiniciar: (que: 'todo' | 'preguntas' | 'ejercicios' | 'lecturas') => void
   importar: (p: Progreso) => void
+
+  /* sincronización */
+  sync: EstadoSync
+  sincronizarAhora: () => void
 }
+
+export type EstadoSync =
+  | { fase: 'local' }                          /* sin cuenta: solo este navegador */
+  | { fase: 'sincronizando' }
+  | { fase: 'al-dia'; cuando: number }
+  | { fase: 'error'; mensaje: string }
 
 const Ctx = createContext<StoreProgreso | null>(null)
 
 export function ProveedorProgreso({ children }: { children: ReactNode }) {
   const [progreso, setProgreso] = useState<Progreso>(cargar)
+  const [sync, setSync] = useState<EstadoSync>({ fase: 'local' })
   const primeraVez = useRef(true)
+  const { usuario } = useSesion()
+  const ultimoSubido = useRef(0)
 
   useEffect(() => {
     if (primeraVez.current) { primeraVez.current = false; return }
@@ -152,6 +167,44 @@ export function ProveedorProgreso({ children }: { children: ReactNode }) {
   const actualizar = useCallback((f: (p: Progreso) => Progreso) => {
     setProgreso((p) => ({ ...f(p), actualizado: Date.now() }))
   }, [])
+
+  /* ---------- sincronización con la cuenta ---------- */
+
+  const correrSync = useCallback(async () => {
+    if (!usuario) { setSync({ fase: 'local' }); return }
+    setSync({ fase: 'sincronizando' })
+    const actual = leerGuardado<Progreso>(CLAVE, cargar())
+    const r = await sincronizar(usuario.id, actual, fusionar)
+    if (r.ok && r.progreso) {
+      setProgreso(r.progreso)
+      ultimoSubido.current = r.progreso.actualizado
+      setSync({ fase: 'al-dia', cuando: Date.now() })
+    } else {
+      setSync({ fase: 'error', mensaje: r.error ?? 'No pude sincronizar.' })
+    }
+  }, [usuario])
+
+  // al entrar (o al cambiar de cuenta) se fusiona lo local con lo del servidor
+  useEffect(() => { void correrSync() }, [correrSync])
+
+  // después, se sube con retraso: no una vez por tecla, y solo si algo cambió
+  useEffect(() => {
+    if (!usuario) return
+    if (progreso.actualizado <= ultimoSubido.current) return
+    const t = setTimeout(() => { void correrSync() }, 4000)
+    return () => clearTimeout(t)
+  }, [progreso.actualizado, usuario, correrSync])
+
+  // y también al cerrar la pestaña, para no perder los últimos segundos
+  useEffect(() => {
+    if (!usuario) return
+    const on = () => {
+      if (progreso.actualizado <= ultimoSubido.current) return
+      void correrSync()
+    }
+    window.addEventListener('pagehide', on)
+    return () => window.removeEventListener('pagehide', on)
+  }, [progreso, usuario, correrSync])
 
   const store = useMemo<StoreProgreso>(() => ({
     progreso,
@@ -220,8 +273,11 @@ export function ProveedorProgreso({ children }: { children: ReactNode }) {
       if (que === 'ejercicios') return { ...p, ejercicios: {} }
       return { ...p, leidas: {} }
     }),
-    importar: (nuevo) => setProgreso({ ...vacio(), ...nuevo, actualizado: Date.now() })
-  }), [progreso, actualizar])
+    importar: (nuevo) => setProgreso({ ...vacio(), ...nuevo, actualizado: Date.now() }),
+
+    sync,
+    sincronizarAhora: () => { void correrSync() }
+  }), [progreso, actualizar, sync, correrSync])
 
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>
 }

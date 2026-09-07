@@ -8,6 +8,7 @@ import { semana as semanaDe } from '../lib/plan.ts'
 import { useEscape } from '../lib/hooks.ts'
 import Enlace from './Enlace.tsx'
 import { Barra } from '../ui/Progreso.tsx'
+import EstadoSync from './EstadoSync.tsx'
 
 interface Props {
   ruta: Ruta
@@ -164,6 +165,7 @@ export default function BarraLateral({
                 style={{ flex: 1 }}>
           <span className="nav__link__texto">Ajustes y cuenta</span>
         </Enlace>
+        <EstadoSync />
       </div>
     </aside>
   )
