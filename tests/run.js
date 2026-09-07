@@ -6,9 +6,11 @@
 import { ER_EJ } from '../src/data/ejercicios/er.js'
 import { LEX_EJ } from '../src/data/ejercicios/lexicas.js'
 import { GLC_EJ } from '../src/data/ejercicios/glc.js'
-import { testER } from '../src/engines/regex.js'
+import { testER, buildRegex, parseConjuntos } from '../src/engines/regex.js'
 import { testAccionLexica } from '../src/engines/lexica.js'
 import { testGLC } from '../src/engines/earley.js'
+import { testAccionCodigo, codigoModelo } from '../src/engines/accionLexica.js'
+import { decorar } from '../src/data/ejercicios/meta.js'
 
 let fails = 0
 let casos = 0
@@ -30,11 +32,26 @@ function report(tag, id, titulo, r) {
 console.log('Expresiones regulares…')
 ER_EJ.forEach((e) => report('ER', e.id, e.t, testER(e.m, e.cj, e.ac, e.rc)))
 
-console.log('Acciones léxicas…')
+console.log('Acciones léxicas (condición estructurada)…')
 LEX_EJ.forEach((e) => report('LEX', e.id, e.t, testAccionLexica(e.mER, e.cj, e.atr, e.op, e.cota, e.tests)))
+
+console.log('Acciones léxicas (pseudocódigo escrito)…')
+LEX_EJ.forEach((e) => {
+  let rx
+  try { rx = buildRegex(e.mER, parseConjuntos(e.cj)) }
+  catch (err) { console.log(`  ✗ [COD ${e.id}] ER inválida: ${err.message}`); fails++; return }
+  report('COD', e.id, e.t, testAccionCodigo(rx, codigoModelo(e.atr, e.op, e.cota), e.tests))
+})
 
 console.log('Gramáticas…')
 GLC_EJ.forEach((e) => report('GLC', e.id, e.t, testGLC(e.m, e.ac, e.rc)))
+
+console.log('Metadatos (numeración y agrupación)…')
+;[['er', ER_EJ], ['lex', LEX_EJ], ['glc', GLC_EJ]].forEach(([tipo, lista]) => {
+  decorar(lista, tipo).forEach((e) => {
+    if (e.grupo === 'Otros') { console.log(`  ✗ [META ${tipo}:${e.id}] sin grupo ni número asignados`); fails++ }
+  })
+})
 
 const total = ER_EJ.length + LEX_EJ.length + GLC_EJ.length
 console.log('')
