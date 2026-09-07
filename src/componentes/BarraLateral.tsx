@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { CURSO, LECCIONES } from '../lib/curso.ts'
 import type { Parcial } from '../tipos/curso.ts'
 import type { Ruta } from '../lib/router.ts'
@@ -170,7 +171,7 @@ export default function BarraLateral({
 
 function NavLink(
   { a, ir, activo, children, cuenta, aviso }:
-  { a: Ruta; ir: (r: Ruta) => void; activo: boolean; children: React.ReactNode; cuenta?: string; aviso?: string }
+  { a: Ruta; ir: (r: Ruta) => void; activo: boolean; children: ReactNode; cuenta?: string; aviso?: string }
 ) {
   return (
     <Enlace a={a} ir={ir} className="nav__link" activo={activo}>

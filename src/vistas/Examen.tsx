@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { BANCO, CURSO, TIPO_LABEL } from '../lib/curso.ts'
+import { CURSO, TIPO_LABEL } from '../lib/curso.ts'
+import { useBanco } from '../lib/contenido.ts'
 import type { PreguntaBanco } from '../tipos/curso.ts'
 import type { Ruta } from '../lib/router.ts'
 import { useProgreso } from '../lib/progreso.tsx'
@@ -42,6 +43,7 @@ type Fase = 'listo' | 'corriendo' | 'terminado'
 
 export default function Examen({ ir }: { ir: (r: Ruta) => void }) {
   const { calificar } = useProgreso()
+  const { banco, cargando } = useBanco()
   const [alcance, setAlcance] = useState<Alcance>('I')
   const [fase, setFase] = useState<Fase>('listo')
   const [mazo, setMazo] = useState<PreguntaBanco[]>([])
@@ -54,8 +56,8 @@ export default function Examen({ ir }: { ir: (r: Ruta) => void }) {
   const cfg = CONFIG[alcance]
 
   const disponibles = useMemo(
-    () => BANCO.filter((q) => MODULOS_PARCIAL[alcance](q.modId)),
-    [alcance]
+    () => banco.filter((q) => MODULOS_PARCIAL[alcance](q.modId)),
+    [alcance, banco]
   )
 
   const terminar = useCallback(() => {
@@ -115,7 +117,9 @@ export default function Examen({ ir }: { ir: (r: Ruta) => void }) {
             <div><div className="dato__v">{disponibles.length}</div><div className="dato__l">en el banco</div></div>
           </div>
 
-          <Boton variante="primary" onClick={arrancar}>Empezar el {cfg.titulo.toLowerCase()}</Boton>
+          <Boton variante="primary" onClick={arrancar} cargando={cargando} disabled={!disponibles.length}>
+            Empezar el {cfg.titulo.toLowerCase()}
+          </Boton>
         </div>
       </>
     )
@@ -202,7 +206,7 @@ export default function Examen({ ir }: { ir: (r: Ruta) => void }) {
               Módulo {q.modId} · {CURSO.modulos.find((m) => m.id === q.modId)?.titulo}
             </span>
           </div>
-          <p className="tarjeta__q">{q.q}</p>
+          <div className="tarjeta__q" dangerouslySetInnerHTML={{ __html: q.q }} />
 
           {!revelada ? (
             <div className="tira" style={{ marginTop: 'var(--s5)' }}>

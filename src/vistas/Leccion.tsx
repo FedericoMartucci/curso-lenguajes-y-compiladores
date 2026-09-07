@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { LECCIONES, LECCION_POR_ID, BANCO } from '../lib/curso.ts'
+import { LECCIONES, LECCION_POR_ID } from '../lib/curso.ts'
+import { useCuerpo } from '../lib/contenido.ts'
 import { semanaDeModulo } from '../lib/plan.ts'
 import { useProgreso } from '../lib/progreso.tsx'
 import type { Ruta } from '../lib/router.ts'
@@ -8,24 +9,26 @@ import Enlace from '../componentes/Enlace.tsx'
 import Boton from '../ui/Boton.tsx'
 import Pill, { BadgeLeccion } from '../ui/Pill.tsx'
 import NoEncontrado from './NoEncontrado.tsx'
+import { SkeletonProsa } from '../ui/Cargando.tsx'
 
 interface Props { id: string; ir: (r: Ruta) => void }
 
 export default function Leccion({ id, ir }: Props) {
   const l = LECCION_POR_ID[id]
   const { leida, marcarLeida } = useProgreso()
-  const cuerpo = useRef<HTMLDivElement>(null)
+  const { cuerpo, cargando } = useCuerpo(id)
+  const ref = useRef<HTMLDivElement>(null)
 
   // las tablas de la teoría scrollean en su propio contenedor: el body nunca en horizontal
   useEffect(() => {
-    cuerpo.current?.querySelectorAll('table').forEach((t) => {
+    ref.current?.querySelectorAll('table').forEach((t) => {
       if (t.parentElement?.classList.contains('tabla-scroll')) return
       const caja = document.createElement('div')
       caja.className = 'tabla-scroll'
       t.replaceWith(caja)
       caja.appendChild(t)
     })
-  }, [id])
+  }, [id, cuerpo])
 
   if (!l) return <NoEncontrado ir={ir} que={`la lección ${id}`} />
 
@@ -33,7 +36,7 @@ export default function Leccion({ id, ir }: Props) {
   const next = LECCIONES[l.ix + 1]
   const sem = semanaDeModulo(l.mod.id)
   const yaLeida = leida(l.id)
-  const preguntas = BANCO.filter((q) => q.lid === l.id)
+  const preguntas = cuerpo?.qa ?? []
 
   return (
     <>
@@ -49,7 +52,7 @@ export default function Leccion({ id, ir }: Props) {
           <>
             {(l.badges ?? []).map((b, i) => <BadgeLeccion key={i} badge={b} />)}
             {l.aho && <Pill tono="neutra" mono>{l.aho}</Pill>}
-            {preguntas.length > 0 && <Pill tono="neutra">{preguntas.length} preguntas</Pill>}
+            {l.nq > 0 && <Pill tono="neutra">{l.nq} preguntas</Pill>}
           </>
         }
         acciones={
@@ -62,7 +65,9 @@ export default function Leccion({ id, ir }: Props) {
         }
       />
 
-      <div className="prosa" ref={cuerpo} dangerouslySetInnerHTML={{ __html: l.html || '' }} />
+      {cargando
+        ? <SkeletonProsa lineas={14} />
+        : <div className="prosa" ref={ref} dangerouslySetInnerHTML={{ __html: cuerpo?.html ?? '' }} />}
 
       {l.artifact && (
         <div className="artefacto">
@@ -84,7 +89,7 @@ export default function Leccion({ id, ir }: Props) {
             Respondé de memoria antes de abrir. Para que vuelvan solas cuando corresponde,{' '}
             <Enlace a={{ v: 'ejercitar' }} ir={ir}>practicalas en Ejercitación</Enlace>.
           </p>
-          {(l.qa ?? []).map((p, i) => (
+          {preguntas.map((p, i) => (
             <details key={i} className="qa">
               <summary><span className="qn">{i + 1}</span><span>{p.q}</span></summary>
               <div className="qa__resp">

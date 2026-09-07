@@ -264,3 +264,9 @@ kbd {
   font-size: var(--fs-xs); color: var(--ink-3);
 }
 .paleta__pie span { display: inline-flex; align-items: center; gap: 4px; }
+
+/* Skeleton de lectura: mismas proporciones que la prosa, para que no salte al llegar. */
+.skel-prosa { max-width: var(--measure-read); display: grid; gap: var(--s3); }
+.skel-prosa .skel { height: 1.05em; }
+.skel-prosa .skel:nth-child(4n) { width: 62%; margin-bottom: var(--s4); }
+.skel-prosa .skel:nth-child(5n) { width: 88%; }

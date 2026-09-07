@@ -3,6 +3,8 @@
    interacción: solo garantiza que ninguna pantalla explota al montarse.
    Se ejecuta bundleado con esbuild porque tiene JSX.  Uso:  npm run smoke  */
 
+export {}
+
 /* ---------- stubs mínimos del navegador ----------
    renderToString no corre efectos, pero sí los inicializadores de estado, que leen
    localStorage, matchMedia y location. */
@@ -46,7 +48,7 @@ g.document = {
 }
 g.requestAnimationFrame = (f: () => void) => { f(); return 0 }
 
-const React = (await import('react')).default
+const ReactRT = (await import('react')).default
 const { renderToString } = await import('react-dom/server')
 const App = (await import('../src/App.tsx')).default
 
@@ -74,7 +76,7 @@ for (const r of RUTAS) {
   ventana.location.pathname = r
   ventana.location.search = ''
   try {
-    const html = renderToString(React.createElement(App))
+    const html = renderToString(ReactRT.createElement(App))
     if (!html || html.length < 200) {
       console.log(`  ✗ ${r}: render vacío o sospechosamente corto (${html.length} chars)`)
       fallos++

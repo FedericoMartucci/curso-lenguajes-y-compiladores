@@ -40,13 +40,42 @@ mods.forEach((m) => {
 })
 
 mkdirSync(join(dir, 'src', 'data'), { recursive: true })
+
+const CABECERA = '/* GENERADO por build.js a partir de content/. No editar a mano: se edita\n' +
+  '   content/mod-*.js y se corre `npm run data`. Está commiteado a propósito para que\n' +
+  '   el deploy no dependa de un paso extra. */\n'
+
+/* Se emiten DOS archivos para poder partir el bundle:
+     indice.ts     — títulos, referencias y badges. Chico: lo necesita la navegación entera.
+     contenido.ts  — el HTML de las lecciones y las respuestas. Grande: se carga con import()
+                     dinámico solo cuando hace falta leer o ejercitar. */
+const indice = {
+  modulos: mods.map((m) => ({
+    id: m.id, titulo: m.titulo, parcial: m.parcial, resumen: m.resumen,
+    lecciones: m.lecciones.map((l) => {
+      const o = { id: l.id, titulo: l.titulo, estado: l.estado, nq: (l.qa || []).length }
+      if (l.aho) o.aho = l.aho
+      if (l.badges) o.badges = l.badges
+      if (l.artifact) { o.artifact = l.artifact; o.artifactTitle = l.artifactTitle; o.artifactH = l.artifactH }
+      return o
+    })
+  }))
+}
+
+const contenido = {}
+mods.forEach((m) => m.lecciones.forEach((l) => {
+  contenido[l.id] = { html: l.html || '', qa: l.qa || [] }
+}))
+
 writeFileSync(
-  join(dir, 'src', 'data', 'curso.ts'),
-  '/* GENERADO por build.js a partir de content/. No editar a mano: se edita content/mod-*.js\n' +
-  '   y se corre `npm run data`. Está commiteado a propósito para que el deploy no dependa\n' +
-  '   de un paso extra. */\n' +
-  "import type { Curso } from '../tipos/curso.ts'\n\n" +
-  'export const CURSO: Curso = ' + JSON.stringify({ modulos: mods }) + '\n'
+  join(dir, 'src', 'data', 'indice.ts'),
+  CABECERA + "import type { CursoIndice } from '../tipos/curso.ts'\n\n" +
+  'export const INDICE: CursoIndice = ' + JSON.stringify(indice) + '\n'
+)
+writeFileSync(
+  join(dir, 'src', 'data', 'contenido.ts'),
+  CABECERA + "import type { ContenidoLecciones } from '../tipos/curso.ts'\n\n" +
+  'export const CONTENIDO: ContenidoLecciones = ' + JSON.stringify(contenido) + '\n'
 )
 
 mods.forEach((m) => {
@@ -57,4 +86,5 @@ mods.forEach((m) => {
 console.log('---')
 console.log('Módulos: ' + mods.length + ' | Lecciones: ' + total + ' (' + dic + ' en profundidad) | Preguntas: ' + qa)
 if (problems.length) { console.log('PROBLEMAS:\n- ' + problems.join('\n- ')); process.exit(1) }
-console.log('OK — src/data/curso.ts generado')
+const kb = (o) => Math.round(JSON.stringify(o).length / 1024)
+console.log('OK — indice.ts (' + kb(indice) + ' kB) y contenido.ts (' + kb(contenido) + ' kB) generados')

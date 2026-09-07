@@ -1,7 +1,7 @@
 /* Piezas compartidas por las seis solapas del sandbox: el índice de ejercicios,
    la cabecera de un ejercicio y el hook que guarda el borrador. */
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { TipoEjercicio, Decorado, EjercicioBase } from '../../tipos/ejercicios.ts'
 import { agrupar } from '../../lib/ejercicios.ts'
@@ -138,28 +138,38 @@ export function useBorrador(
   inicial: Record<string, string>
 ): [Record<string, string>, (campo: string, valor: string) => void, () => void] {
   const { ejercicio, guardarBorrador } = useProgreso()
-  const guardado = ejercicio(tipo, id)?.borrador
 
-  const [campos, setCampos] = useState<Record<string, string>>(() => ({ ...inicial, ...guardado }))
+  const [campos, setCampos] = useState<Record<string, string>>(
+    () => ({ ...inicial, ...(ejercicio(tipo, id)?.borrador ?? {}) })
+  )
+  // solo se persiste después de la primera edición real. Montar un ejercicio y no tocarlo
+  // no tiene que dejar rastro: si no, se crean entradas de ejercicios nunca intentados.
+  const tocado = useRef(false)
 
   // al cambiar de ejercicio se recarga lo suyo, no lo del anterior
   useEffect(() => {
+    tocado.current = false
     setCampos({ ...inicial, ...(ejercicio(tipo, id)?.borrador ?? {}) })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tipo, id])
 
-  // se persiste con retraso: no escribe localStorage en cada tecla
+  // se persiste con retraso: no escribe en cada tecla
   useEffect(() => {
-    const t = setTimeout(() => guardarBorrador(tipo, id, campos), 500)
+    if (!tocado.current) return
+    const t = setTimeout(() => guardarBorrador(tipo, id, campos), 600)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campos, tipo, id])
 
   const set = useCallback((campo: string, valor: string) => {
+    tocado.current = true
     setCampos((c) => ({ ...c, [campo]: valor }))
   }, [])
 
-  const limpiar = useCallback(() => setCampos({ ...inicial }), [inicial])
+  const limpiar = useCallback(() => {
+    tocado.current = true
+    setCampos({ ...inicial })
+  }, [inicial])
 
   return [campos, set, limpiar]
 }

@@ -16,6 +16,49 @@ export interface PreguntaQA {
   a: string
 }
 
+/* El contenido se emite partido en dos para poder partir el bundle:
+   el ÍNDICE (títulos y referencias, 21 kB) viaja siempre porque lo necesita la navegación;
+   el CONTENIDO (HTML y respuestas, 719 kB) se carga con import() dinámico. */
+
+/** Lo que la navegación necesita saber de una lección sin abrirla. */
+export interface LeccionIndice {
+  /** Identificador jerárquico: '6.4'. Único en todo el curso y estable (se usa en la URL). */
+  id: string
+  titulo: string
+  /** Referencia al libro de Aho: '§4.6.2, p.242'. */
+  aho?: string
+  badges?: Badge[]
+  estado: EstadoLeccion
+  /** Cuántas preguntas tiene. Permite armar los qid sin cargar el contenido. */
+  nq: number
+  /** Visualizador embebido: ruta relativa dentro de public/artifacts/. */
+  artifact?: string
+  artifactTitle?: string
+  artifactH?: number
+}
+
+export interface ModuloIndice {
+  id: number
+  titulo: string
+  parcial: Parcial
+  resumen: string
+  lecciones: LeccionIndice[]
+}
+
+export interface CursoIndice {
+  modulos: ModuloIndice[]
+}
+
+/** El cuerpo de una lección: lo pesado. */
+export interface CuerpoLeccion {
+  /** HTML confiable: sale de content/, no de entrada del usuario. */
+  html: string
+  qa: PreguntaQA[]
+}
+
+export type ContenidoLecciones = Record<string, CuerpoLeccion>
+
+/** Lección completa: índice + cuerpo. Solo existe una vez cargado el contenido. */
 export interface Leccion {
   /** Identificador jerárquico: '6.4'. Único en todo el curso y estable (se usa en la URL). */
   id: string
@@ -46,9 +89,10 @@ export interface Curso {
   modulos: Modulo[]
 }
 
-/** Lección aplanada con su módulo y su posición global, para navegar sin recorrer el árbol. */
-export interface LeccionPlana extends Leccion {
-  mod: Modulo
+/** Lección del índice, aplanada con su módulo y su posición global. Es lo que usa la
+    navegación: no necesita el contenido. */
+export interface LeccionPlana extends LeccionIndice {
+  mod: ModuloIndice
   /** Índice en el orden global del curso: permite anterior/siguiente en O(1). */
   ix: number
 }

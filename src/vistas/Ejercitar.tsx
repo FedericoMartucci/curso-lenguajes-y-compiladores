@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { CURSO, BANCO, TIPO_LABEL } from '../lib/curso.ts'
+import { CURSO, TIPO_LABEL } from '../lib/curso.ts'
+import { useBanco } from '../lib/contenido.ts'
+import { LECCIONES } from '../lib/curso.ts'
 import type { PreguntaBanco, TipoPregunta } from '../tipos/curso.ts'
 import type { Calificacion } from '../tipos/progreso.ts'
 import { useProgreso } from '../lib/progreso.tsx'
@@ -10,6 +12,7 @@ import Enlace from '../componentes/Enlace.tsx'
 import Boton from '../ui/Boton.tsx'
 import Pill from '../ui/Pill.tsx'
 import { Barra } from '../ui/Progreso.tsx'
+import { SkeletonTarjeta } from '../ui/Cargando.tsx'
 
 type Modo = 'vencidas' | 'todas' | 'nuevas'
 
@@ -30,6 +33,7 @@ const mezclar = <T,>(arr: T[]): T[] => {
 
 export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
   const { progreso, calificar, tarjeta } = useProgreso()
+  const { banco, cargando } = useBanco()
   const [modo, setModo] = useState<Modo>('vencidas')
   const [tipo, setTipo] = useState<TipoPregunta | 'todos'>('todos')
   const [mod, setMod] = useState<number | 'todos'>('todos')
@@ -38,18 +42,27 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
   const [semilla, setSemilla] = useState(0)
   const [hechas, setHechas] = useState(0)
 
+  // "toca hoy" solo trae preguntas de temas ya leídos: es el mismo criterio que el aviso
+  // del sidebar y evita tirarle las 417 encima a alguien que recién entra
+  const modulosVistos = useMemo(
+    () => new Set(LECCIONES.filter((l) => progreso.leidas[l.id]).map((l) => l.mod.id)),
+    [progreso.leidas]
+  )
+
   const mazo = useMemo(() => {
     const ahora = Date.now()
-    let b = BANCO.filter((q) =>
+    let b = banco.filter((q) =>
       (tipo === 'todos' || q.tipo === tipo) &&
       (mod === 'todos' || q.modId === mod)
     )
-    if (modo === 'vencidas') b = b.filter((q) => vencida(progreso.preguntas[q.qid], ahora))
+    if (modo === 'vencidas') {
+      b = b.filter((q) => modulosVistos.has(q.modId) && vencida(progreso.preguntas[q.qid], ahora))
+    }
     if (modo === 'nuevas') b = b.filter((q) => !progreso.preguntas[q.qid]?.vistas)
     return mezclar(b)
     // el mazo se arma una vez por tanda: no se rebaraja con cada calificación
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modo, tipo, mod, semilla])
+  }, [modo, tipo, mod, semilla, banco, modulosVistos])
 
   useEffect(() => { setPos(0); setRevelada(false); setHechas(0) }, [modo, tipo, mod, semilla])
 
@@ -82,8 +95,10 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
     return () => window.removeEventListener('keydown', on)
   }, [actual, revelada, responder])
 
-  const modulos = CURSO.modulos.filter((m) => BANCO.some((q) => q.modId === m.id))
-  const totalVencidas = BANCO.filter((q) => vencida(progreso.preguntas[q.qid])).length
+  const modulos = CURSO.modulos.filter((m) => m.lecciones.some((l) => l.nq > 0))
+  const totalVencidas = banco.filter(
+    (q) => modulosVistos.has(q.modId) && vencida(progreso.preguntas[q.qid])
+  ).length
 
   const filtros = (
     <div className="tira" style={{ gap: 'var(--s3)', marginBottom: 'var(--s5)' }}>
@@ -125,6 +140,16 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
     />
   )
 
+  if (cargando) {
+    return (
+      <>
+        {cabecera}
+        {filtros}
+        <div className="drill"><SkeletonTarjeta /></div>
+      </>
+    )
+  }
+
   if (!mazo.length) {
     return (
       <>
@@ -133,12 +158,14 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
         <div className="vacio">
           <h3>
             {modo === 'vencidas'
-              ? 'Nada que repasar por ahora'
+              ? (modulosVistos.size === 0 ? 'Todavía no marcaste ninguna lección como leída' : 'Nada que repasar por ahora')
               : 'No hay preguntas con ese filtro'}
           </h3>
           <p>
             {modo === 'vencidas'
-              ? 'Las preguntas van venciendo con el tiempo, así que esto se va a llenar solo. Si querés adelantar, cambiá a “Sin ver” o a “Todas”.'
+              ? (modulosVistos.size === 0
+                  ? 'Acá aparecen las preguntas de los temas que ya viste, cuando les toca volver. Leé una lección y marcala como leída, o pasá a “Sin ver” para arrancar igual.'
+                  : 'Las preguntas van venciendo con el tiempo, así que esto se va a llenar solo. Si querés adelantar, cambiá a “Sin ver” o a “Todas”.')
               : 'Probá con otro módulo o con otro tipo de pregunta.'}
           </p>
           <div className="tira" style={{ justifyContent: 'center' }}>
@@ -198,7 +225,7 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
             </Enlace>
           </div>
 
-          <p className="tarjeta__q">{actual.q}</p>
+          <div className="tarjeta__q" dangerouslySetInnerHTML={{ __html: actual.q }} />
 
           {!revelada ? (
             <div className="tira" style={{ marginTop: 'var(--s5)' }}>

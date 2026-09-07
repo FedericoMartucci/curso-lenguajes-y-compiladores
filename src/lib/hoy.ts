@@ -3,7 +3,7 @@
 
    Regla del proyecto: el plan SUGIERE. Nada de lo que calcula acá bloquea el acceso a nada. */
 
-import { LECCIONES, BANCO } from './curso.ts'
+import { LECCIONES, QIDS, TOTAL_PREGUNTAS } from './curso.ts'
 import { semana as semanaDe, practicasHasta } from './plan.ts'
 import { vencida } from './srs.ts'
 import { TODOS_LOS_EJERCICIOS } from './ejercicios.ts'
@@ -42,11 +42,12 @@ export function calcularHoy(progreso: Progreso, ahora = Date.now()): Hoy {
     .filter((e) => !progreso.ejercicios[`${e.tipo}:${e.id}`]?.resuelto)
     .map((e) => ({ tipo: e.tipo, id: e.id, t: e.t, grupo: e.grupo, num: e.num, etiquetaTipo: e.etiquetaTipo }))
 
-  // solo se ponen a repasar preguntas de temas que ya tocaron
+  // solo se ponen a repasar preguntas de temas que ya tocaron.
+  // QIDS sale del índice: no hace falta cargar los 719 kB de contenido para contar vencidas.
   const modulosVistos = new Set(
     LECCIONES.filter((l) => progreso.leidas[l.id]).map((l) => l.mod.id)
   )
-  const vencidas = BANCO
+  const vencidas = QIDS
     .filter((q) => modulosVistos.has(q.modId))
     .filter((q) => vencida(progreso.preguntas[q.qid], ahora))
     .map((q) => q.qid)
@@ -80,7 +81,7 @@ export function calcularAvance(progreso: Progreso): AvanceGlobal {
   const totalLecciones = LECCIONES.length
   // "sabida" = tarjeta con al menos un acierto encadenado
   const sabidas = Object.values(progreso.preguntas).filter((t) => t.racha >= 1).length
-  const totalPreguntas = BANCO.length
+  const totalPreguntas = TOTAL_PREGUNTAS
   const resueltos = Object.values(progreso.ejercicios).filter((e) => e.resuelto).length
   const totalEjercicios = TODOS_LOS_EJERCICIOS.length
 

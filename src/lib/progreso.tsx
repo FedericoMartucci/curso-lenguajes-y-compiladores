@@ -51,6 +51,45 @@ function cargar(): Progreso {
   return crudo ? base : migrarV1(base)
 }
 
+/** Fusiona dos versiones del progreso quedándose con lo más reciente de cada parte.
+    Se usa entre pestañas y, más adelante, contra lo que venga del servidor. */
+export function fusionar(a: Progreso, b: Progreso): Progreso {
+  const nuevo = b.actualizado >= a.actualizado ? b : a
+  const viejo = nuevo === b ? a : b
+
+  const leidas = { ...viejo.leidas, ...nuevo.leidas }
+
+  const preguntas = { ...viejo.preguntas }
+  Object.entries(nuevo.preguntas).forEach(([k, t]) => {
+    const previo = preguntas[k]
+    if (!previo || t.visto >= previo.visto) preguntas[k] = t
+  })
+
+  const ejercicios = { ...viejo.ejercicios }
+  Object.entries(nuevo.ejercicios).forEach(([k, e]) => {
+    const previo = ejercicios[k]
+    if (!previo) { ejercicios[k] = e; return }
+    // resolver un ejercicio no se deshace, y los intentos se acumulan
+    ejercicios[k] = {
+      resuelto: previo.resuelto || e.resuelto,
+      intentos: Math.max(previo.intentos, e.intentos),
+      ...((e.actualizado >= previo.actualizado ? e.borrador : previo.borrador)
+        ? { borrador: (e.actualizado >= previo.actualizado ? e.borrador : previo.borrador) as Record<string, string> }
+        : {}),
+      actualizado: Math.max(previo.actualizado, e.actualizado)
+    }
+  })
+
+  return {
+    v: 2,
+    leidas, preguntas, ejercicios,
+    semana: nuevo.semana,
+    cerradas: [...new Set([...viejo.cerradas, ...nuevo.cerradas])].sort((x, y) => x - y),
+    ritmo: nuevo.ritmo,
+    actualizado: Math.max(a.actualizado, b.actualizado)
+  }
+}
+
 /* ---------- API del store ---------- */
 
 export const claveEjercicio = (tipo: TipoEjercicio, id: string): string => `${tipo}:${id}`
@@ -94,6 +133,21 @@ export function ProveedorProgreso({ children }: { children: ReactNode }) {
     if (primeraVez.current) { primeraVez.current = false; return }
     escribirGuardado(CLAVE, progreso)
   }, [progreso])
+
+  // Otra pestaña de la misma app también escribe. Sin esto, la última en guardar pisa a la
+  // otra: con el sandbox en una pestaña y una lección en otra, se perdía progreso.
+  useEffect(() => {
+    const on = (e: StorageEvent) => {
+      if (e.key !== CLAVE || !e.newValue) return
+      try {
+        const remoto = JSON.parse(e.newValue) as Progreso
+        if (remoto.v !== 2) return
+        setProgreso((local) => fusionar(local, remoto))
+      } catch { /* JSON de otra versión: se ignora */ }
+    }
+    window.addEventListener('storage', on)
+    return () => window.removeEventListener('storage', on)
+  }, [])
 
   const actualizar = useCallback((f: (p: Progreso) => Progreso) => {
     setProgreso((p) => ({ ...f(p), actualizado: Date.now() }))

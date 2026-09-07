@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
 import { useRuta } from './lib/router.ts'
 import { ProveedorProgreso, useProgreso } from './lib/progreso.tsx'
 import { calcularHoy } from './lib/hoy.ts'
@@ -12,10 +12,14 @@ import Ejercitar from './vistas/Ejercitar.tsx'
 import Examen from './vistas/Examen.tsx'
 import Sandbox from './vistas/Sandbox.tsx'
 import Mesa from './vistas/Mesa.tsx'
-import Practicas from './vistas/Practicas.tsx'
-import Clases from './vistas/Clases.tsx'
 import Ajustes from './vistas/Ajustes.tsx'
 import NoEncontrado from './vistas/NoEncontrado.tsx'
+import { SkeletonProsa } from './ui/Cargando.tsx'
+
+/* Estas dos arrastran datos pesados (279 kB de transcripciones y 66 kB de enunciados)
+   y se visitan poco: se cargan al entrar. */
+const Practicas = lazy(() => import('./vistas/Practicas.tsx'))
+const Clases = lazy(() => import('./vistas/Clases.tsx'))
 
 const TITULOS: Record<string, string> = {
   inicio: 'Hoy', plan: 'Plan de estudio', leccion: 'Teoría', modulo: 'Teoría',
@@ -106,7 +110,9 @@ function Contenido() {
         </header>
 
         <main className="principal" id="contenido" tabIndex={-1}>
-          <Vista />
+          <Suspense fallback={<SkeletonProsa lineas={8} />}>
+            <Vista />
+          </Suspense>
         </main>
       </div>
 

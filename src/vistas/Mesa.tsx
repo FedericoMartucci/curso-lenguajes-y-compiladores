@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from 'react'
+import type { ReactElement } from 'react'
 import Cabecera from './Cabecera.tsx'
 import Boton from '../ui/Boton.tsx'
 
@@ -87,8 +88,8 @@ function Arbol({ texto }: { texto: string }) {
 
     const gx = 78, gy = 74, mx = 36, my = 28
     const W = Math.max(hoja, 1) * gx, H = (maxD + 1) * gy
-    const lineas: React.ReactElement[] = []
-    const nodos: React.ReactElement[] = []
+    const lineas: ReactElement[] = []
+    const nodos: ReactElement[] = []
     ;(function draw(n: Nodo, k: string) {
       const x = mx + (n.x ?? 0) * gx, y = my + (n.d ?? 0) * gy
       n.children.forEach((c, ci) => {

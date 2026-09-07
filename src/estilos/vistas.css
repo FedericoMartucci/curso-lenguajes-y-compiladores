@@ -92,7 +92,7 @@
 .pager .nx { text-align: right; }
 
 /* ===================== Tarjetas y rejillas ===================== */
-.rejilla { display: grid; gap: var(--s3); }
+.rejilla { display: grid; gap: var(--s3); align-items: start; }
 .rejilla--3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .rejilla--2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 
