@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { comparar } from '../lib/comparar.ts'
 import type { Comparacion } from '../lib/comparar.ts'
+import { corregirConIA, hayClaveIA } from '../lib/corregirIA.ts'
+import type { CorreccionIA } from '../lib/corregirIA.ts'
 import Boton from '../ui/Boton.tsx'
 import Icono from '../ui/Icono.tsx'
 
@@ -9,11 +11,17 @@ import Icono from '../ui/Icono.tsx'
    Escribir antes de ver la respuesta es lo que separa "me suena" de "lo sé": sin esto,
    revelar y decir "la sabía" es demasiado fácil.
 
-   Sobre la corrección: cuando la respuesta es una gramática, un motor la puede correr y ahí
-   sí se dice si está bien. Cuando es prosa, ningún motor la puede juzgar sin conexión, así
-   que se marcan los conceptos del modelo que aparecen en tu texto y se aclara que es una
-   ayuda, no una corrección. Decir "correcta" ahí sería la promesa que el proyecto no se
-   permite. */
+   Sobre la corrección hay tres niveles y NO valen lo mismo, así que se dicen distinto:
+
+   1. Motor. Una gramática se corre. "Correcta" ahí es un hecho.
+   2. Conceptos. Para prosa, sin nada más, se marcan los conceptos del modelo que aparecen
+      en tu texto. No dice si está bien: es una ayuda para que te califiques.
+   3. IA. Si el alumno cargó su clave de Azure en Ajustes, además opina un modelo. Se pide
+      a mano (no sale solo: cuesta plata y es la clave del alumno) y se muestra rotulado
+      como revisión, nunca con la autoridad del motor.
+
+   Decir "correcta" con la voz del motor cuando en realidad opinó un modelo sería
+   exactamente la promesa que el proyecto no se permite. */
 
 interface Props {
   /** Se resetea el texto cuando cambia. */
@@ -22,13 +30,33 @@ interface Props {
   modelo: string
   revelada: boolean
   filas?: number
+  /** La consigna, para darle contexto a la corrección con IA. */
+  consigna?: string
 }
 
-export default function Responder({ clave, modelo, revelada, filas = 4 }: Props) {
+const ROTULO_IA: Record<CorreccionIA['veredicto'], string> = {
+  bien: 'La IA la da por correcta',
+  parcial: 'La IA la da por incompleta',
+  mal: 'La IA la da por incorrecta'
+}
+
+export default function Responder({ clave, modelo, revelada, filas = 4, consigna = '' }: Props) {
   const [texto, setTexto] = useState('')
   const [comp, setComp] = useState<Comparacion | null>(null)
+  const [ia, setIA] = useState<CorreccionIA | null>(null)
+  const [pidiendo, setPidiendo] = useState(false)
+  const [errorIA, setErrorIA] = useState<string | null>(null)
 
-  useEffect(() => { setTexto(''); setComp(null) }, [clave])
+  useEffect(() => { setTexto(''); setComp(null); setIA(null); setErrorIA(null) }, [clave])
+
+  const pedirIA = async () => {
+    setPidiendo(true); setErrorIA(null)
+    const r = await corregirConIA({ consigna, modelo, respuesta: texto })
+    setPidiendo(false)
+    if (r.estado === 'ok') setIA(r.correccion)
+    else if (r.estado === 'sin-clave') setErrorIA('Cargá tu clave de Azure en Ajustes para usar esto.')
+    else setErrorIA(r.mensaje)
+  }
 
   // al revelar se compara sola: el alumno ya no puede editar para hacerse trampa
   useEffect(() => {
@@ -72,6 +100,38 @@ export default function Responder({ clave, modelo, revelada, filas = 4 }: Props)
               </ul>
             )}
           </div>
+        </div>
+      )}
+
+      {/* La revisión con IA se pide a mano: gasta de la clave del alumno, así que no sale
+          sola. Sólo aparece cuando el motor no pudo dar un veredicto por su cuenta. */}
+      {revelada && texto.trim() && comp?.clase === 'asistida' && (
+        <div className="ia">
+          {!ia && (
+            <Boton tamaño="sm" variante="secondary" onClick={() => void pedirIA()} cargando={pidiendo}
+                   disabled={!hayClaveIA()}>
+              {hayClaveIA() ? 'Que la revise la IA' : 'Revisión con IA (cargá tu clave en Ajustes)'}
+            </Boton>
+          )}
+          {errorIA && <p className="ia__error" role="status">{errorIA}</p>}
+          {ia && (
+            <div className={'comparacion comparacion--ia comparacion--ia-' + ia.veredicto} role="status">
+              <Icono nombre="chispa" tam={16} />
+              <div>
+                <p className="comparacion__t">
+                  {ROTULO_IA[ia.veredicto]} <span className="ia__sello">puede equivocarse</span>
+                </p>
+                <p className="comparacion__d">{ia.detalle}</p>
+                {ia.falta.length > 0 && (
+                  <ul className="conceptos">
+                    {ia.falta.map((c) => (
+                      <li key={c} className="concepto"><Icono nombre="cruz" tam={11} />{c}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

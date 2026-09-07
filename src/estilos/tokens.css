@@ -10,7 +10,15 @@
    Sobre el formato: la paleta va en hexadecimal y no en OKLCH a propósito. No se genera
    ninguna rampa: el crema y el azul vienen del proyecto original (son la identidad) y cada
    valor está medido contra cada superficie donde se usa. Los números al lado de cada token
-   de texto son ese contraste real, el peor caso de los seis fondos posibles. */
+   de texto son ese contraste real, el peor caso de los seis fondos posibles.
+
+   SEGUNDA REGLA DEL SISTEMA: dos fondos que significan cosas opuestas se tienen que separar
+   en LUMINANCIA, no solo en tono. Las tres versiones anteriores de --ok-bg/--bad-bg estaban
+   a 1.01:1 entre sí: en escala de grises el panel de casos era un bloque liso y no se podía
+   skimear cuál falló. Lo mismo --accent-bg contra --sunken, que estaba a 1.00:1 y dejaba el
+   ítem seleccionado del sidebar invisible salvo por el azul. Ahora --bad-bg es más oscuro
+   que --ok-bg en claro y más claro en oscuro (el que reclama atención pesa más), y
+   --accent-bg se separa de las tres superficies. Si tocás uno, corré `npm run contraste`. */
 
 :root {
   /* ---------- superficies (tema claro) ---------- */
@@ -18,22 +26,25 @@
   --surface:         #ffffff;   /* tarjetas, paneles, campos */
   --sunken:          #f1efe8;   /* sidebar, bloques de código, encabezados de tabla */
   --hairline:        #e6e5e3;   /* separaciones */
-  --hairline-strong: #cecdc9;   /* bordes de controles */
+  --hairline-strong: #cecdc9;   /* hover, scrollbar, bordes decorativos */
+  --borde-campo:     #8b8a84;   /* 3:1 — solo donde una caja vacía tiene que anunciarse */
   --overlay:         rgb(26 26 24 / 38%);
+  --pista:           rgb(26 26 24 / 18%);   /* fondo de barra: translúcido para medir igual sobre cualquier superficie */
 
   /* ---------- texto ---------- */
   --ink:    #1a1a18;   /* 15.1:1 peor caso */
   --ink-2:  #5f5e5a;   /*  5.6:1 */
   --ink-3:  #6d6b62;   /*  4.6:1  ← el gris más claro que puede llevar texto */
+  --ink-off: #8a8880;  /*  3.1:1  ← solo deshabilitado: no lleva texto que haya que leer */
 
   /* ---------- acento y semántica ---------- */
   --accent:      #2c5aa0;
-  --accent-bg:   #e6f0fb;
+  --accent-bg:   #d0e0f7;   /* "esto está activo": separado de --sunken, no solo de tono */
   --accent-ink:  #ffffff;   /* texto sobre --accent */
-  --ok:      #3b6d11;  --ok-bg:   #eaf3de;
-  --bad:     #a32d2d;  --bad-bg:  #fcebeb;
+  --ok:      #3b6d11;  --ok-bg:   #edf5e2;
+  --bad:     #a32d2d;  --bad-bg:  #f8d2d1;   /* más oscuro que --ok-bg a propósito: ver nota */
   --warn:    #7d4a09;  --warn-bg: #f8efdf;
-  --purple:  #4f47ad;
+  --purple:  #4f47ad;  --purple-bg: #dedcf2;   /* la IA opina: nunca el verde/rojo del motor */
 
   /* ---------- tipografía ---------- */
   --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -97,24 +108,39 @@ html[data-theme='dark'] {
   --sunken:          #212120;
   --hairline:        #33332f;
   --hairline-strong: #4a4a45;
+  --borde-campo:     #78776f;
   --overlay:         rgb(0 0 0 / 55%);
+  --pista:           rgb(236 235 230 / 18%);
 
   --ink:    #ecebe6;   /* 11.7:1 peor caso */
   --ink-2:  #adaca5;   /*  6.1:1 */
   --ink-3:  #93918a;   /*  4.6:1 */
+  --ink-off: #7e7c75;  /*  3.9:1 */
 
   --accent:     #9db8e8;
-  --accent-bg:  #1c2740;
+  --accent-bg:  #2b3a57;
   --accent-ink: #14203a;
-  --ok:     #9ec964;  --ok-bg:   #1e2e16;
-  --bad:    #f19a9a;  --bad-bg:  #331c1c;
+  --ok:     #9ec964;  --ok-bg:   #192810;
+  --bad:    #f19a9a;  --bad-bg:  #4f2723;
   --warn:   #efa42f;  --warn-bg: #33260f;
-  --purple: #b3adee;
+  --purple: #b3adee;  --purple-bg: #35305c;
 
   --shadow-pop:   0 4px 16px -4px rgb(0 0 0 / 50%), 0 1px 3px rgb(0 0 0 / 40%);
   --shadow-modal: 0 24px 60px -12px rgb(0 0 0 / 62%), 0 4px 12px rgb(0 0 0 / 44%);
 
   color-scheme: dark;
+}
+
+/* Sobre un tinte semántico el escalón más pálido de gris no llega: --ink-3 queda en 3.9:1
+   contra --bad-bg y en 4.0:1 contra --accent-bg. En vez de perseguir cada descendiente que
+   lo use (y volver a olvidarse uno la próxima vez que se agregue), en esas superficies el
+   token se colapsa al escalón de arriba. --ink-2 sí pasa contra los cuatro tintes.
+   La lista son los contenedores que pintan un tinte; si agregás uno, sumalo acá. */
+.sem--activa, .callout.tgt, .veredicto, .caso--pass, .caso--fail,
+.requisito--ok, .tras-resolver, .errbox, .comparacion--ok, .comparacion--mal,
+.pill--acento, .pill--ok, .pill--aviso, .comparacion--ia,
+.tabla-llenar td.celda--ok, .tabla-llenar td.celda--mal, .tabla-slr td.conf {
+  --ink-3: var(--ink-2);
 }
 
 /* Sin elección explícita manda el sistema. Solo redefine tokens: nunca los estrena. */
@@ -125,19 +151,22 @@ html[data-theme='dark'] {
     --sunken:          #212120;
     --hairline:        #33332f;
     --hairline-strong: #4a4a45;
+    --borde-campo:     #78776f;
     --overlay:         rgb(0 0 0 / 55%);
+    --pista:           rgb(236 235 230 / 18%);
 
     --ink:    #ecebe6;
     --ink-2:  #adaca5;
     --ink-3:  #93918a;
+    --ink-off: #7e7c75;
 
     --accent:     #9db8e8;
-    --accent-bg:  #1c2740;
+    --accent-bg:  #2b3a57;
     --accent-ink: #14203a;
-    --ok:     #9ec964;  --ok-bg:   #1e2e16;
-    --bad:    #f19a9a;  --bad-bg:  #331c1c;
+    --ok:     #9ec964;  --ok-bg:   #192810;
+    --bad:    #f19a9a;  --bad-bg:  #4f2723;
     --warn:   #efa42f;  --warn-bg: #33260f;
-    --purple: #b3adee;
+    --purple: #b3adee;  --purple-bg: #35305c;  --purple-bg: #35305c;
 
     --shadow-pop:   0 4px 16px -4px rgb(0 0 0 / 50%), 0 1px 3px rgb(0 0 0 / 40%);
     --shadow-modal: 0 24px 60px -12px rgb(0 0 0 / 62%), 0 4px 12px rgb(0 0 0 / 44%);

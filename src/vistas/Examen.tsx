@@ -215,7 +215,7 @@ export default function Examen({ ir }: { ir: (r: Ruta) => void }) {
           </div>
           <div className="tarjeta__q" dangerouslySetInnerHTML={{ __html: q.q }} />
 
-          <Responder clave={q.qid} modelo={q.a} revelada={revelada}
+          <Responder clave={q.qid} modelo={q.a} revelada={revelada} consigna={q.q}
                      filas={q.tipo === 'practico' ? 6 : 3} />
 
           {!revelada ? (

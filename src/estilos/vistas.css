@@ -39,9 +39,13 @@
   line-height: 1.65;
 }
 .callout .lab {
-  display: block; font-size: var(--fs-xs); font-weight: 600;
+  /* flex y no block: cuando el rótulo lleva un icono dibujado, con `block` el SVG cae en
+     su propia línea arriba del texto en vez de alinearse con él. */
+  display: flex; align-items: center; gap: var(--s2);
+  font-size: var(--fs-xs); font-weight: 600;
   letter-spacing: 0.02em; margin-bottom: var(--s2);
 }
+.callout .lab > svg { flex: 0 0 auto; }
 .callout.tgt { background: var(--accent-bg); color: var(--ink); }
 .callout.tgt .lab { color: var(--accent); }
 .callout.aho { background: var(--sunken); border: 1px solid var(--hairline); }
@@ -217,8 +221,10 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
   margin: var(--s4) 0 var(--s3);
   animation: revelar var(--dur) var(--ease-out);
 }
-.veredicto--ok { background: var(--ok-bg); color: var(--ok); }
-.veredicto--bad { background: var(--bad-bg); color: var(--bad); }
+/* El borde no es decoración: el veredicto usa el mismo relleno que las filas que resume,
+   así que sin él la conclusión se lee como una fila más del listado. */
+.veredicto--ok  { background: var(--ok-bg);  color: var(--ok);  border: 1px solid var(--ok); }
+.veredicto--bad { background: var(--bad-bg); color: var(--bad); border: 1px solid var(--bad); }
 /* Recibe foco programático para anunciarse al lector de pantalla; no es un control,
    así que no dibuja anillo (:focus-visible sólo dispara con teclado). */
 .veredicto:focus { outline: none; }
@@ -239,7 +245,8 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 .caso__ico { flex: 0 0 13px; align-self: center; }
 .caso__s { word-break: break-all; white-space: pre-wrap; }
 /* Las comillas delimitan la cadena para que un espacio de borde se vea como tal. */
-.caso__comillas { opacity: 0.45; }
+.caso__comillas { color: var(--ink-2); }   /* informativo: delimita espacios al principio y al final.
+   Va en --ink-2 y no en --ink-3 porque cae sobre --bad-bg, donde --ink-3 queda en 3.9:1. */
 .caso__exp {
   margin-left: auto; font-family: var(--sans); font-size: var(--fs-xs);
   text-align: right; flex: 1 1 40%; min-width: 0;
@@ -317,7 +324,7 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 .sb__solapa:hover { border-color: var(--ink-3); color: var(--ink); text-decoration: none; }
 .sb__solapa[aria-current='page'] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .sb__solapa strong { font-size: var(--fs-base); font-weight: 500; }
-.sb__solapa small { font-family: var(--mono); font-size: 11px; opacity: 0.8; }
+.sb__solapa small { font-family: var(--mono); font-size: 11px; }
 
 /* Misma causa: los items de grid tienen `min-width: auto`, y `white-space: nowrap` en las
    celdas de .tabla-slr propaga su min-content a través de .scroll-x (que es un bloque plano,
@@ -402,7 +409,7 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 /* Editor con resaltado: <pre> pintado debajo, <textarea> transparente encima. */
 .editor { position: relative; }
 .editor__hl, .editor__ta {
-  margin: 0; border: 1px solid var(--hairline-strong); border-radius: var(--r-sm);
+  margin: 0; border: 1px solid var(--borde-campo); border-radius: var(--r-sm);
   font-family: var(--mono); font-size: var(--fs-sm); line-height: 1.7;
   /* Las dos capas tienen que medir idéntico: si una forma ligaduras y la otra no, el
      cursor se desincroniza del texto pintado. */
@@ -549,7 +556,7 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 .cierre-leccion__sub, .tras-resolver__sub {
   font-size: var(--fs-sm); color: var(--ink-2); margin-top: 2px; line-height: 1.45;
 }
-.tras-resolver__sub { color: var(--ok); opacity: 0.85; }
+.tras-resolver__sub { color: var(--ok); }
 .tras-resolver p:only-child { font-size: var(--fs-md); font-weight: 500; color: var(--ok); }
 
 /* ===================== Escalones de ayuda =====================
@@ -611,8 +618,15 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 .previa-arbol .arbol-caja { margin-top: 0; background: var(--surface); }
 
 /* ===================== Tabla SLR para llenar ===================== */
-.tabla-llenar__caja { border: 1px solid var(--hairline); border-radius: var(--r-md); }
+.tabla-llenar__caja { border: 1px solid var(--borde-campo); border-radius: var(--r-md); }
 .tabla-llenar { border-collapse: separate; border-spacing: 0; }
+/* Las líneas son la única señal de dónde empieza y termina cada celda: sin ellas la tabla
+   se lee como un bloque de texto suelto y el alumno no sabe cuántas casillas tiene que
+   llenar hasta que hace foco en una. La caja de afuera lleva el borde fuerte; las
+   divisiones internas van finas para que 130 celdas no se conviertan en una reja. */
+.tabla-llenar th, .tabla-llenar td { border-right: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+.tabla-llenar tr > *:last-child { border-right: 0; }
+.tabla-llenar tr:last-child > * { border-bottom: 0; }
 .tabla-llenar th { position: sticky; top: 0; z-index: 2; }
 .tabla-llenar thead th:first-child,
 .tabla-llenar tbody th { position: sticky; left: 0; z-index: 3; background: var(--sunken); }
@@ -628,6 +642,7 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
   background: var(--surface); border-radius: 3px;
 }
 .tabla-llenar .celda:read-only { color: var(--ink-2); }
+.tabla-llenar .celda:hover:not(:read-only) { background: var(--sunken); }
 .tabla-llenar td.celda--ok { background: var(--ok-bg); }
 .tabla-llenar td.celda--mal { background: var(--bad-bg); }
 .tabla-llenar td.celda--mal .celda { color: var(--bad); }
@@ -635,7 +650,7 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 .celda__esperada {
   position: absolute; right: 2px; bottom: 0;
   font-family: var(--mono); font-size: 9px; line-height: 1;
-  color: var(--bad); opacity: 0.75; pointer-events: none;
+  color: var(--bad); pointer-events: none;
 }
 @media (pointer: coarse) { .tabla-llenar .celda { min-width: 54px; height: 40px; font-size: 15px; } }
 
@@ -655,7 +670,7 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 }
 .etapa:hover { border-color: var(--ink-3); color: var(--ink); }
 .etapa[aria-pressed='true'] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.etapa__n { font-family: var(--mono); font-size: 11px; opacity: 0.75; }
+.etapa__n { font-family: var(--mono); font-size: 11px; }
 .etapa--lista { border-color: var(--ok); color: var(--ok); }
 .etapa--lista[aria-pressed='true'] { background: var(--ok); color: var(--canvas); border-color: var(--ok); }
 .etapas__cuenta { margin-left: auto; font-family: var(--mono); font-size: var(--fs-xs); color: var(--ink-3); }
@@ -672,7 +687,7 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 .requisito--ok { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
 .requisito__t { font-size: var(--fs-md); font-weight: 600; }
 .requisito__sub { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 1px; line-height: 1.4; }
-.requisito--ok .requisito__sub { color: var(--ok); opacity: 0.8; }
+.requisito--ok .requisito__sub { color: var(--ok); }
 .requisito .barra { width: 120px; }
 @media (max-width: 620px) {
   .requisito { grid-template-columns: auto minmax(0, 1fr); }
@@ -697,6 +712,20 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 .comparacion--asistida { background: var(--sunken); color: var(--ink-2); border: 1px solid var(--hairline); }
 .comparacion__t { font-weight: 600; }
 .comparacion__d { margin-top: 2px; }
+
+/* La revisión con IA va en violeta y NO en el verde/rojo del motor. La diferencia no es
+   decorativa: el verde de .comparacion--ok significa "esto se ejecutó y pasó", y un modelo
+   que opina sobre prosa no puede reclamar esa autoridad. Que se vea distinto es la parte
+   honesta del componente. El veredicto lo dice el texto; el color sólo dice quién habló. */
+.ia { margin-top: var(--s3); }
+.ia__error { margin-top: var(--s2); font-size: var(--fs-sm); color: var(--bad); }
+.comparacion--ia { background: var(--purple-bg); color: var(--purple); }
+.comparacion--ia .comparacion__d { color: var(--ink-2); }
+.ia__sello {
+  display: inline-block; margin-left: var(--s2);
+  font-family: var(--mono); font-size: var(--fs-xs); font-weight: 400;
+  color: var(--ink-2);
+}
 
 .conceptos {
   display: flex; flex-wrap: wrap; gap: var(--s2);

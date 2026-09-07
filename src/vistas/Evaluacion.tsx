@@ -159,7 +159,7 @@ export default function Evaluacion({ n, ir }: { n: number; ir: (r: Ruta) => void
             </div>
             <div className="tarjeta__q" dangerouslySetInnerHTML={{ __html: actual.q }} />
 
-            <Responder clave={actual.qid} modelo={actual.a} revelada={revelada}
+            <Responder clave={actual.qid} modelo={actual.a} revelada={revelada} consigna={actual.q}
                        filas={actual.tipo === 'practico' ? 6 : 3} />
 
             {!revelada ? (

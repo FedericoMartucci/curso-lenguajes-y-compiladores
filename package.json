@@ -11,8 +11,9 @@
     "data": "node build.js",
     "test": "node tests/run.ts && node tests/fusion.ts",
     "smoke": "node tests/_bundle.mjs && node tests/.smoke.bundle.mjs",
-    "check": "npm run tipos && npm run test && npm run smoke",
-    "tipos": "tsc --noEmit"
+    "check": "npm run tipos && npm run test && npm run contraste && npm run smoke",
+    "tipos": "tsc --noEmit",
+    "contraste": "node tests/contraste.ts"
   },
   "keywords": [
     "compiladores",

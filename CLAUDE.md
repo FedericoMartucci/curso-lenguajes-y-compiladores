@@ -17,13 +17,14 @@ Leelos antes de cambiar la interfaz: ahí está el porqué de cada cosa.
 
 ```bash
 npm install
-npm run dev      # servidor de desarrollo
-npm run data     # regenera src/data/{indice,contenido}.ts desde content/
-npm run build    # npm run data + vite build -> dist/
-npm run tipos    # tsc --noEmit
-npm test         # valida el banco de ejercicios (926 casos)
-npm run smoke    # renderiza las 24 rutas para detectar errores de componentes
-npm run check    # tipos + test + smoke  ← correr SIEMPRE antes de commitear
+npm run dev       # servidor de desarrollo (sirve /api/corregir con el mismo handler que Vercel)
+npm run data      # regenera src/data/{indice,contenido}.ts desde content/
+npm run build     # npm run data + vite build -> dist/
+npm run tipos     # tsc --noEmit
+npm test          # valida el banco de ejercicios (1456 casos) y la fusión de progreso
+npm run contraste # verifica los pares de color contra tokens.css
+npm run smoke     # renderiza las 27 rutas para detectar errores de componentes
+npm run check     # tipos + test + contraste + smoke  ← correr SIEMPRE antes de commitear
 ```
 
 ## Arquitectura
@@ -43,6 +44,8 @@ src/lib/
   progreso.tsx             Store único de estudio + fusión entre pestañas y con el servidor.
   srs.ts                   Repetición espaciada (SM-2 simplificado, tres calificaciones).
   sesion.tsx  supabase.ts  sync.ts    Cuenta con Google y sincronización.
+  comparar.ts              Compara la respuesta escrita con el modelo (motor o conceptos).
+  corregirIA.ts            Cliente de /api/corregir. La clave del alumno vive acá, en su browser.
   hooks.ts                 localStorage, tema, Escape, reduced-motion.
 src/ui/                    Primitivas: Boton, Pill, Campo, Progreso, Cargando, Icono.
 src/componentes/           BarraLateral, PaletaComandos, Enlace, CodeEditor, Casos, Teclado.
@@ -55,7 +58,8 @@ content/mod-00..15.js      FUENTE DE VERDAD de la teoría. Sigue en JS a propós
 public/fonts/              IBM Plex Sans y Mono, autoalojadas.
 public/artifacts/          Visualizadores embebidos por iframe en lecciones.
 supabase/esquema.sql       Tabla de progreso y políticas RLS.
-tests/                     run.ts (banco), fusion.ts (merge) y smoke.tsx (rutas).
+api/corregir.ts            Función de Vercel. Proxy a Azure OpenAI; nunca guarda la clave.
+tests/                     run.ts (banco), fusion.ts (merge), contraste.ts (color) y smoke.tsx.
 build.js                   content/ -> src/data/{indice,contenido}.ts
 ```
 
@@ -101,6 +105,19 @@ build.js                   content/ -> src/data/{indice,contenido}.ts
 12. **Español rioplatense** en todo el texto de la interfaz y del contenido, tratando de "vos".
 13. **Dependencias acotadas.** Hoy: `react`, `react-dom`, `@supabase/supabase-js`, `vite`,
     `@vitejs/plugin-react`, `vite-plugin-pwa`, `typescript`. Antes de agregar una, evaluar si vale.
+14. **Ninguna credencial que no sea pública lleva prefijo `VITE_`.** Lo que tiene ese prefijo entra
+    al bundle y es público, punto. La anon key de Supabase puede ir ahí porque RLS la limita; la
+    clave de Azure NO tiene equivalente de RLS, así que la lee `api/corregir.ts` desde `process.env`
+    o viene del alumno en un header. Si alguna vez ves `VITE_AZURE_…`, es un incidente.
+15. **Tres niveles de certeza y se dicen distinto.** El motor ejecuta y su veredicto es un hecho
+    (verde/rojo). La comparación por conceptos es una ayuda y no dice si está bien (neutra). La IA
+    opina y puede equivocarse (violeta, `--purple-bg`, con el sello "puede equivocarse"). Que se
+    vean distinto no es decoración: darle a una opinión el verde del motor es la única forma de
+    romper la promesa central del proyecto.
+16. **Dos fondos que significan cosas opuestas se separan en LUMINANCIA, no sólo en tono.**
+    `--ok-bg` contra `--bad-bg`, `--accent-bg` contra las superficies. `npm run contraste` lo
+    verifica leyendo `tokens.css`; también compara los dos bloques del tema oscuro, que están
+    escritos por duplicado y se pueden ir de sincronía.
 
 ## Contratos de los motores
 
@@ -193,12 +210,26 @@ la ruta a la lista de `tests/smoke.tsx`.
 - **Unir dos mapas resucita lo borrado.** La primera versión de `fusionar` hacía `{...a, ...b}`, así
   que desmarcar una lección o usar "borrar lecturas" quedaba deshecho por cualquier otra pestaña.
   Una eliminación y un "todavía no lo vi" son la misma ausencia: hay que mirar las marcas de tiempo.
+- **Dos colores que sólo se distinguen por tono no se distinguen.** `--ok-bg` y `--bad-bg` estuvieron
+  tres versiones a 1.01:1 entre sí: cada una pasaba el contraste de TEXTO y el panel de casos era
+  igual un bloque liso que no se podía skimear. `--accent-bg` estaba a 1.00:1 contra `--sunken`, o
+  sea que el ítem seleccionado del sidebar era invisible salvo por el azul. Un número de contraste
+  de texto no ve este error; `tests/contraste.ts` sí.
+- **`opacity` sobre texto informativo no tiene valor válido.** Para que `.caso__comillas` llegara a
+  4.5:1 en el tema claro hacía falta opacidad 0.91, que no se nota. O el texto importa y va opaco,
+  o no importa y no va. La jerarquía la dan el tamaño, el peso y el token de color.
+- **Una tabla para llenar sin líneas de grilla no se ve como una tabla.** La tabla SLR tenía
+  `border-collapse: separate`, `border-spacing: 0`, `td { padding: 0 }` y `.celda { border: 0 }`:
+  90 casillas sin ningún límite visible hasta que una recibía foco.
 
 ## Antes de commitear
 
 ```bash
 npm run check
 ```
+
+`check` corre tipos, banco de ejercicios, fusión, contraste y smoke. El de contraste lee
+`src/estilos/tokens.css` de verdad, así que cualquier cambio de color pasa por ahí.
 
 Los tests son la fuente de verdad sobre si el banco está sano. Si tocás un motor, corré también un
 caso a mano en node para ver el comportamiento real, no solo el verde del test. Y si tocaste la
