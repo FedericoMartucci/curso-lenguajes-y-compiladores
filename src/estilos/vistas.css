@@ -399,8 +399,9 @@
 .entrada__lista li { display: flex; gap: var(--s3); }
 .entrada__lista b { color: var(--ink); font-weight: 600; }
 .entrada__lista .n {
-  font-family: var(--mono); font-size: var(--fs-xs); color: var(--ink-3);
-  flex: 0 0 auto; padding-top: 3px;
+  font-family: var(--mono); font-size: var(--fs-sm); color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 34px; text-align: right; padding-top: 2px;
 }
 .entrada__pie { font-size: var(--fs-sm); color: var(--ink-3); margin-top: var(--s5); line-height: 1.55; }
 
