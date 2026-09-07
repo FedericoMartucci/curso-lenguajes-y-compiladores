@@ -44,7 +44,7 @@
   --ok:      #3b6d11;  --ok-bg:   #edf5e2;
   --bad:     #a32d2d;  --bad-bg:  #f8d2d1;   /* más oscuro que --ok-bg a propósito: ver nota */
   --warn:    #7d4a09;  --warn-bg: #f8efdf;
-  --purple:  #4f47ad;  --purple-bg: #dedcf2;   /* la IA opina: nunca el verde/rojo del motor */
+  --purple:  #4f47ad;
 
   /* ---------- tipografía ---------- */
   --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -123,7 +123,7 @@ html[data-theme='dark'] {
   --ok:     #9ec964;  --ok-bg:   #192810;
   --bad:    #f19a9a;  --bad-bg:  #4f2723;
   --warn:   #efa42f;  --warn-bg: #33260f;
-  --purple: #b3adee;  --purple-bg: #35305c;
+  --purple: #b3adee;
 
   --shadow-pop:   0 4px 16px -4px rgb(0 0 0 / 50%), 0 1px 3px rgb(0 0 0 / 40%);
   --shadow-modal: 0 24px 60px -12px rgb(0 0 0 / 62%), 0 4px 12px rgb(0 0 0 / 44%);
@@ -138,7 +138,7 @@ html[data-theme='dark'] {
    La lista son los contenedores que pintan un tinte; si agregás uno, sumalo acá. */
 .sem--activa, .callout.tgt, .veredicto, .caso--pass, .caso--fail,
 .requisito--ok, .tras-resolver, .errbox, .comparacion--ok, .comparacion--mal,
-.pill--acento, .pill--ok, .pill--aviso, .comparacion--ia,
+.pill--acento, .pill--ok, .pill--aviso,
 .tabla-llenar td.celda--ok, .tabla-llenar td.celda--mal, .tabla-slr td.conf {
   --ink-3: var(--ink-2);
 }
@@ -166,7 +166,7 @@ html[data-theme='dark'] {
     --ok:     #9ec964;  --ok-bg:   #192810;
     --bad:    #f19a9a;  --bad-bg:  #4f2723;
     --warn:   #efa42f;  --warn-bg: #33260f;
-    --purple: #b3adee;  --purple-bg: #35305c;  --purple-bg: #35305c;
+    --purple: #b3adee;
 
     --shadow-pop:   0 4px 16px -4px rgb(0 0 0 / 50%), 0 1px 3px rgb(0 0 0 / 40%);
     --shadow-modal: 0 24px 60px -12px rgb(0 0 0 / 62%), 0 4px 12px rgb(0 0 0 / 44%);

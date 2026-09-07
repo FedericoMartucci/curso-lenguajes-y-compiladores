@@ -39,13 +39,9 @@
   line-height: 1.65;
 }
 .callout .lab {
-  /* flex y no block: cuando el rótulo lleva un icono dibujado, con `block` el SVG cae en
-     su propia línea arriba del texto en vez de alinearse con él. */
-  display: flex; align-items: center; gap: var(--s2);
-  font-size: var(--fs-xs); font-weight: 600;
+  display: block; font-size: var(--fs-xs); font-weight: 600;
   letter-spacing: 0.02em; margin-bottom: var(--s2);
 }
-.callout .lab > svg { flex: 0 0 auto; }
 .callout.tgt { background: var(--accent-bg); color: var(--ink); }
 .callout.tgt .lab { color: var(--accent); }
 .callout.aho { background: var(--sunken); border: 1px solid var(--hairline); }
@@ -712,26 +708,6 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 .comparacion--asistida { background: var(--sunken); color: var(--ink-2); border: 1px solid var(--hairline); }
 .comparacion__t { font-weight: 600; }
 .comparacion__d { margin-top: 2px; }
-
-/* La revisión con IA va en violeta y NO en el verde/rojo del motor. La diferencia no es
-   decorativa: el verde de .comparacion--ok significa "esto se ejecutó y pasó", y un modelo
-   que opina sobre prosa no puede reclamar esa autoridad. Que se vea distinto es la parte
-   honesta del componente. El veredicto lo dice el texto; el color sólo dice quién habló. */
-.ia { margin-top: var(--s3); }
-.ia__error { margin-top: var(--s2); font-size: var(--fs-sm); color: var(--bad); }
-/* La oferta cuando todavía no hay clave: es texto con un enlace, no un botón apagado. */
-.ia__oferta {
-  display: flex; align-items: flex-start; gap: var(--s2);
-  font-size: var(--fs-sm); line-height: 1.55; color: var(--ink-2);
-}
-.ia__oferta > svg { flex: 0 0 auto; margin-top: 3px; color: var(--purple); }
-.comparacion--ia { background: var(--purple-bg); color: var(--purple); }
-.comparacion--ia .comparacion__d { color: var(--ink-2); }
-.ia__sello {
-  display: inline-block; margin-left: var(--s2);
-  font-family: var(--mono); font-size: var(--fs-xs); font-weight: 400;
-  color: var(--ink-2);
-}
 
 .conceptos {
   display: flex; flex-wrap: wrap; gap: var(--s2);

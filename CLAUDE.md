@@ -17,7 +17,7 @@ Leelos antes de cambiar la interfaz: ahí está el porqué de cada cosa.
 
 ```bash
 npm install
-npm run dev       # servidor de desarrollo (sirve /api/corregir con el mismo handler que Vercel)
+npm run dev       # servidor de desarrollo
 npm run data      # regenera src/data/{indice,contenido}.ts desde content/
 npm run build     # npm run data + vite build -> dist/
 npm run tipos     # tsc --noEmit
@@ -45,7 +45,6 @@ src/lib/
   srs.ts                   Repetición espaciada (SM-2 simplificado, tres calificaciones).
   sesion.tsx  supabase.ts  sync.ts    Cuenta con Google y sincronización.
   comparar.ts              Compara la respuesta escrita con el modelo (motor o conceptos).
-  corregirIA.ts            Cliente de /api/corregir. La clave del alumno vive acá, en su browser.
   hooks.ts                 localStorage, tema, Escape, reduced-motion.
 src/ui/                    Primitivas: Boton, Pill, Campo, Progreso, Cargando, Icono.
 src/componentes/           BarraLateral, PaletaComandos, Enlace, CodeEditor, Casos, Teclado.
@@ -58,7 +57,6 @@ content/mod-00..15.js      FUENTE DE VERDAD de la teoría. Sigue en JS a propós
 public/fonts/              IBM Plex Sans y Mono, autoalojadas.
 public/artifacts/          Visualizadores embebidos por iframe en lecciones.
 supabase/esquema.sql       Tabla de progreso y políticas RLS.
-api/corregir.ts            Función de Vercel. Proxy a Azure OpenAI; nunca guarda la clave.
 tests/                     run.ts (banco), fusion.ts (merge), contraste.ts (color) y smoke.tsx.
 build.js                   content/ -> src/data/{indice,contenido}.ts
 ```
@@ -106,14 +104,12 @@ build.js                   content/ -> src/data/{indice,contenido}.ts
 13. **Dependencias acotadas.** Hoy: `react`, `react-dom`, `@supabase/supabase-js`, `vite`,
     `@vitejs/plugin-react`, `vite-plugin-pwa`, `typescript`. Antes de agregar una, evaluar si vale.
 14. **Ninguna credencial que no sea pública lleva prefijo `VITE_`.** Lo que tiene ese prefijo entra
-    al bundle y es público, punto. La anon key de Supabase puede ir ahí porque RLS la limita; la
-    clave de Azure NO tiene equivalente de RLS, así que la lee `api/corregir.ts` desde `process.env`
-    o viene del alumno en un header. Si alguna vez ves `VITE_AZURE_…`, es un incidente.
-15. **Tres niveles de certeza y se dicen distinto.** El motor ejecuta y su veredicto es un hecho
-    (verde/rojo). La comparación por conceptos es una ayuda y no dice si está bien (neutra). La IA
-    opina y puede equivocarse (violeta, `--purple-bg`, con el sello "puede equivocarse"). Que se
-    vean distinto no es decoración: darle a una opinión el verde del motor es la única forma de
-    romper la promesa central del proyecto.
+    al bundle y es público, punto. La anon key de Supabase puede ir ahí porque RLS la limita.
+15. **Dos niveles de certeza y se dicen distinto.** El motor ejecuta y su veredicto es un hecho
+    (verde/rojo). La comparación por conceptos es una ayuda que NO dice si está bien (neutra).
+    Nunca darle a la segunda la voz de la primera: es la promesa central del proyecto. Se evaluó
+    meter un modelo de lenguaje para juzgar la prosa y se descartó a propósito — la app anda sin
+    conexión, sin cuenta y sin que nadie pague nada, y eso vale más que un veredicto opinable.
 16. **Dos fondos que significan cosas opuestas se separan en LUMINANCIA, no sólo en tono.**
     `--ok-bg` contra `--bad-bg`, `--accent-bg` contra las superficies. `npm run contraste` lo
     verifica leyendo `tokens.css`; también compara los dos bloques del tema oscuro, que están
@@ -221,6 +217,16 @@ la ruta a la lista de `tests/smoke.tsx`.
 - **Una tabla para llenar sin líneas de grilla no se ve como una tabla.** La tabla SLR tenía
   `border-collapse: separate`, `border-spacing: 0`, `td { padding: 0 }` y `.celda { border: 0 }`:
   90 casillas sin ningún límite visible hasta que una recibía foco.
+- **Un comparador que castiga el parafraseo miente.** `compararProsa` buscaba el término del
+  modelo como substring exacto, así que a un alumno que escribía "simplicidad del diseño",
+  "parser" y "espacios" donde el modelo decía "sencillez de diseño", "sintáctico" y "blancos"
+  le daba 2 de 6 — le decía "te faltó" a alguien que lo sabía. Se arregló con raíces y una
+  tabla de sinónimos de la materia. Aflojar el matching tiene el error simétrico (darle
+  conceptos a quien no escribió nada), así que `tests/comparar.ts` mide **las dos**
+  direcciones con piso y techo por caso, y está verificado que falla en las dos.
+- **Rellenar los conceptos con "palabras largas" inventa conceptos.** Si el modelo marcó tres
+  términos en negrita, ésos son los conceptos; completar hasta seis agregaba "ensucia",
+  "blancos" y "durante" y se los contaba al alumno como faltantes.
 
 ## Antes de commitear
 

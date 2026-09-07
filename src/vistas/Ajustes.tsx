@@ -10,8 +10,6 @@ import { coberturaContenido } from '../lib/curso.ts'
 import Cabecera from './Cabecera.tsx'
 import Boton from '../ui/Boton.tsx'
 import Selector from '../ui/Selector.tsx'
-import Icono from '../ui/Icono.tsx'
-import { leerClaveIA, guardarClaveIA } from '../lib/corregirIA.ts'
 
 const TEMAS: { id: Tema; label: string }[] = [
   { id: 'light', label: 'Claro' },
@@ -28,80 +26,6 @@ const QUE_BORRA: Record<Borrado, string> = {
   lecturas: 'las marcas de lección leída'
 }
 
-
-/* La clave de Azure es el único ajuste que NO se sincroniza, a propósito: sincronizarla
-   significaría guardar la credencial de cada alumno en una base que no necesita tenerla. */
-function PanelIA() {
-  const [guardada, setGuardada] = useState(() => leerClaveIA())
-  const [endpoint, setEndpoint] = useState(guardada?.endpoint ?? '')
-  const [key, setKey] = useState('')
-  const [modelo, setModelo] = useState(guardada?.modelo ?? 'gpt-5.1')
-  const [aviso, setAviso] = useState<string | null>(null)
-
-  const guardar = () => {
-    const clave = key.trim() || guardada?.key || ''
-    if (!endpoint.trim() || !clave) return
-    const nueva = { endpoint: endpoint.trim(), key: clave, modelo: modelo.trim() || 'gpt-5.1' }
-    guardarClaveIA(nueva)
-    setGuardada(nueva); setKey('')
-    setAviso('Clave guardada en este navegador.')
-  }
-  const borrar = () => {
-    guardarClaveIA(null)
-    setGuardada(null); setEndpoint(''); setKey(''); setModelo('gpt-5.1')
-    setAviso('Clave borrada de este navegador.')
-  }
-
-  return (
-    <section className="panel" style={{ marginTop: 'var(--s4)' }} aria-labelledby="h-ia">
-      <h3 id="h-ia" className="panel__titulo">Corrección con IA</h3>
-      <p style={{ color: 'var(--ink-2)', marginBottom: 'var(--s4)', fontSize: 'var(--fs-md)', lineHeight: 1.6 }}>
-        En las respuestas escritas la app compara tu texto con el modelo y te marca qué conceptos
-        aparecen. Si cargás tu clave de Azure OpenAI, además te dice si está bien y qué te falta.{' '}
-        <strong>Es la opinión de un modelo, no el sandbox:</strong> ahí un ejercicio se ejecuta de
-        verdad y el veredicto es un hecho; acá se puede equivocar.
-      </p>
-
-      <div className="callout aho" style={{ marginBottom: 'var(--s4)' }}>
-        <span className="lab"><Icono nombre="libro" tam={14} /> Dónde queda tu clave</span>
-        En este navegador y nada más. No se guarda en el servidor, no viaja con tu progreso a tus
-        otros dispositivos y no se comparte con nadie: cada uno pone la suya y paga lo suyo.
-      </div>
-
-      <div className="campo">
-        <label className="campo__label" htmlFor="ia-endpoint"><span>Endpoint</span></label>
-        <input id="ia-endpoint" className="control" type="url" autoComplete="off" spellCheck={false}
-          placeholder="https://tu-recurso.services.ai.azure.com/openai/v1"
-          value={endpoint} onChange={(e) => setEndpoint(e.target.value)} />
-      </div>
-      <div className="campo" style={{ marginTop: 'var(--s3)' }}>
-        <label className="campo__label" htmlFor="ia-key">
-          <span>Clave</span>
-          {guardada && <em>ya hay una guardada; escribí para reemplazarla</em>}
-        </label>
-        <input id="ia-key" className="control" type="password" autoComplete="off" spellCheck={false}
-          placeholder={guardada ? '••••••••' : 'La clave del panel de Azure'}
-          value={key} onChange={(e) => setKey(e.target.value)} />
-      </div>
-      <div className="campo" style={{ marginTop: 'var(--s3)' }}>
-        <label className="campo__label" htmlFor="ia-modelo"><span>Modelo</span></label>
-        <input id="ia-modelo" className="control" type="text" autoComplete="off" spellCheck={false}
-          value={modelo} onChange={(e) => setModelo(e.target.value)} />
-      </div>
-
-      <div className="tira" style={{ gap: 'var(--s2)', marginTop: 'var(--s4)' }}>
-        <Boton variante="primary" onClick={guardar}
-               disabled={!endpoint.trim() || (!key.trim() && !guardada)}>
-          Guardar clave
-        </Boton>
-        {guardada && <Boton variante="ghost" onClick={borrar}>Borrar de este navegador</Boton>}
-      </div>
-      {aviso && (
-        <p role="status" style={{ marginTop: 'var(--s3)', color: 'var(--ok)', fontSize: 'var(--fs-sm)' }}>{aviso}</p>
-      )}
-    </section>
-  )
-}
 
 export default function Ajustes() {
   const [tema, setTema] = useTheme()
@@ -214,8 +138,6 @@ export default function Ajustes() {
           </div>
         )}
       </section>
-
-      <PanelIA />
 
       <section className="panel panel--plano" style={{ marginTop: 'var(--s4)' }} aria-labelledby="h-acerca">
         <h3 id="h-acerca" className="panel__titulo">Sobre el contenido</h3>

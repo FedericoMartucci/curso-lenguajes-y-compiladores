@@ -59,11 +59,11 @@ for (const [tema, t] of [['claro', claro], ['oscuro', oscuro]] as const) {
   // falla, la meta de una tarjeta activa). --ink-3 NO: no llega sobre --bad-bg ni --accent-bg,
   // así que queda reservado a las tres superficies neutras. Si hace falta gris sobre un tinte,
   // es --ink-2; esta comprobación existe para que no se cuele --ink-3 de nuevo.
-  const tintes = ['--ok-bg', '--bad-bg', '--warn-bg', '--accent-bg', '--purple-bg']
+  const tintes = ['--ok-bg', '--bad-bg', '--warn-bg', '--accent-bg']
   for (const tinta of ['--ink', '--ink-2']) {
     for (const f of tintes) exigir(tema, 'texto neutro sobre tinte semántico', tinta, f, 4.5, t)
   }
-  for (const [tinta, fondo] of [['--ok', '--ok-bg'], ['--bad', '--bad-bg'], ['--warn', '--warn-bg'], ['--accent', '--accent-bg'], ['--purple', '--purple-bg']]) {
+  for (const [tinta, fondo] of [['--ok', '--ok-bg'], ['--bad', '--bad-bg'], ['--warn', '--warn-bg'], ['--accent', '--accent-bg']]) {
     exigir(tema, 'texto semántico sobre su tinte', tinta!, fondo!, 4.5, t)
   }
   for (const f of fondos) exigir(tema, 'acento sobre superficie', '--accent', f, 4.5, t)
@@ -72,7 +72,6 @@ for (const [tema, t] of [['claro', claro], ['oscuro', oscuro]] as const) {
   // Oposiciones: tienen que separarse en LUMINANCIA. Esto es lo que el contraste de texto no ve.
   exigir(tema, 'pasa y falla se distinguen en escala de grises', '--ok-bg', '--bad-bg', 1.2, t)
   for (const f of fondos) exigir(tema, 'el ítem seleccionado se despega del fondo', '--accent-bg', f, 1.15, t)
-  for (const f of fondos) exigir(tema, 'la revisión con IA se despega del fondo', '--purple-bg', f, 1.15, t)
 
   // Bordes y deshabilitado.
   for (const f of fondos) exigir(tema, 'borde de campo (WCAG 1.4.11)', '--borde-campo', f, 3, t)

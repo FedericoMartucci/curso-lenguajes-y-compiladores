@@ -149,8 +149,80 @@ const VACIAS = new Set([
   'que','los','las','del','con','por','una','uno','sus','ser','son','esta','estan','hay','fue'
 ])
 
-/** Términos con peso conceptual del modelo: lo que está en negrita, lo que va en <code>,
-    y las palabras largas que no son de relleno. */
+/* Un alumno que sabe no repite el modelo palabra por palabra: escribe "simplicidad del
+   diseño" donde el modelo dice "sencillez de diseño", "parser" donde dice "sintáctico" y
+   "espacios" donde dice "blancos". La primera versión comparaba por substring exacto y le
+   daba 2 de 6 a un parafraseo fiel — o sea que le decía "te faltó" a alguien que lo sabía.
+   Un comparador que castiga saber decirlo con tus palabras es peor que no tener ninguno.
+
+   Se resuelve con dos cosas chicas y deterministas, sin modelo de lenguaje: raíces (para la
+   flexión: plural, género, nominalizaciones) y una tabla de sinónimos acotada al vocabulario
+   de ESTA materia. La tabla es corta a propósito: cada entrada es una equivalencia real de
+   la cursada, no un diccionario general. Aflojar de más es el otro error posible, así que
+   `tests/comparar.ts` mide las dos direcciones: que el parafraseo sume y que una respuesta
+   sin contenido siga dando cero. */
+
+/** Familias de términos que en esta materia significan lo mismo. */
+const SINONIMOS: string[][] = [
+  ['sintactico', 'parser', 'sintactica'],
+  ['lexico', 'scanner', 'lexer', 'lexica'],
+  ['blanco', 'espacio', 'tabulacion'],
+  ['sencillez', 'simplicidad', 'sencillo', 'simple'],
+  ['eficiencia', 'rendimiento', 'velocidad', 'rapidez'],
+  ['portabilidad', 'portable'],
+  ['cadena', 'string', 'palabra'],
+  ['reducir', 'reduccion', 'reduce'],
+  ['desplazar', 'desplazamiento', 'shift'],
+  ['token', 'terminal'],
+  ['lexema', 'texto'],
+  ['derivacion', 'derivar'],
+  ['ambigua', 'ambiguedad', 'ambiguo'],
+  ['recursion', 'recursiva', 'recursivo'],
+  ['tabla de simbolos', 'ts'],
+  ['arbol', 'arbol sintactico'],
+  ['pila', 'stack'],
+  ['estado', 'nodo'],
+  ['error', 'fallo', 'falla'],
+  ['conjunto', 'set'],
+  ['gramatica', 'produccion', 'regla'],
+  ['optimizar', 'optimizacion', 'mejorar'],
+  ['intermedio', 'intermedia'],
+  ['ejecucion', 'ejecutar', 'corre', 'runtime'],
+  ['compilacion', 'compilar', 'compilador'],
+  ['interprete', 'interpretar', 'interpretacion']
+]
+
+/** Palabra -> índice de su familia, para preguntar equivalencia en O(1). */
+const FAMILIA = new Map<string, number>()
+SINONIMOS.forEach((fam, i) => fam.forEach((p) => FAMILIA.set(p, i)))
+
+/** Raíz aproximada: saca la flexión más común del español. Conservadora a propósito —
+    sobre-recortar junta palabras que no significan lo mismo y eso infla el puntaje. */
+function raiz(p: string): string {
+  const w = norm(p)
+  if (w.length <= 4) return w
+  const m = w.match(/^(.*?)(ciones|cion|idades|idad|mente|amos|aron|ando|iendo|ados|adas|ada|ado|ar|er|ir|es|as|os|a|o|s)$/)
+  const r = m?.[1] ?? w
+  return r.length >= 4 ? r : w
+}
+
+/** ¿Dos palabras cuentan como la misma idea? */
+function equivalen(a: string, b: string): boolean {
+  const [x, y] = [norm(a), norm(b)]
+  if (x === y) return true
+  const [fx, fy] = [FAMILIA.get(x), FAMILIA.get(y)]
+  if (fx !== undefined && fx === fy) return true
+  const [rx, ry] = [raiz(x), raiz(y)]
+  return rx === ry && rx.length >= 4
+}
+
+const palabras = (s: string): string[] =>
+  norm(sinEtiquetas(s)).split(/[^a-zñ0-9_]+/).filter(Boolean)
+
+/** Términos con peso conceptual del modelo: lo que el autor marcó en negrita o en <code>.
+    Sólo se rellena con palabras largas cuando el modelo marcó menos de dos: si el autor
+    marcó los conceptos, ésos son los conceptos. Rellenar hasta seis metía ruido ("ensucia",
+    "durante", "guarda") y lo contaba como si al alumno le hubiera faltado algo. */
 function conceptosDelModelo(html: string): string[] {
   const marcados = [...html.matchAll(/<(?:b|strong|code)>(.*?)<\/(?:b|strong|code)>/gis)]
     // se recorta la puntuación de los bordes: el modelo escribe "<b>Falso.</b>" y el punto
@@ -158,12 +230,13 @@ function conceptosDelModelo(html: string): string[] {
     .map((m) => sinEtiquetas(m[1] ?? '').trim().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N})]+$/gu, ''))
     .filter((t) => t.length > 1)
 
-  const resto = norm(sinEtiquetas(html))
-    .split(/[^a-zñáéíóúü0-9_]+/)
-    .filter((w) => w.length >= 6 && !VACIAS.has(w))
+  const candidatos = [...marcados]
+  if (marcados.length < 2) {
+    candidatos.push(...palabras(html).filter((w) => w.length >= 6 && !VACIAS.has(w)))
+  }
 
   const unicos: string[] = []
-  for (const t of [...marcados, ...resto]) {
+  for (const t of candidatos) {
     const k = norm(t)
     if (!k) continue
     // se descarta lo que ya está contenido en un concepto anterior: "saltee" sobra si ya
@@ -175,18 +248,30 @@ function conceptosDelModelo(html: string): string[] {
   return unicos
 }
 
+/** ¿El alumno tocó este concepto? Exige que estén sus palabras con peso —por raíz o por
+    sinónimo—, no la frase textual. Un concepto de una sola palabra se cumple con esa. */
+function conceptoPresente(termino: string, delAlumno: string[]): boolean {
+  const claves = palabras(termino).filter((w) => w.length > 2 && !VACIAS.has(w))
+  if (!claves.length) return false
+  const halladas = claves.filter((c) => delAlumno.some((w) => equivalen(c, w))).length
+  /* En un concepto de una o dos palabras se exigen TODAS: con la mitad, "tabla de símbolos"
+     se lo llevaría quien escribió "tabla SLR", que no es lo mismo. Recién a partir de tres
+     se perdona una, porque ahí la que falta suele ser accesoria. */
+  return claves.length <= 2 ? halladas === claves.length : halladas / claves.length >= 0.67
+}
+
 export function compararProsa(delAlumno: string, modeloHtml: string): Comparacion {
-  const mio = norm(delAlumno)
+  const mias = palabras(delAlumno)
   const conceptos = conceptosDelModelo(modeloHtml).map((termino) => ({
     termino,
-    presente: mio.includes(norm(termino))
+    presente: conceptoPresente(termino, mias)
   }))
   const n = conceptos.filter((c) => c.presente).length
   return {
     clase: 'asistida',
     conceptos,
     detalle: conceptos.length
-      ? `Tu respuesta menciona ${n} de ${conceptos.length} conceptos del modelo. Esto NO es una corrección: es una ayuda para que te califiques.`
+      ? `Tu respuesta toca ${n} de ${conceptos.length} conceptos del modelo. Esto NO es una corrección: es una ayuda para que te califiques.`
       : 'Compará tu respuesta con el modelo y calificate.'
   }
 }

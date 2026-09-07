@@ -260,7 +260,7 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
 
           <div className="tarjeta__q" dangerouslySetInnerHTML={{ __html: actual.q }} />
 
-          <Responder clave={actual.qid} modelo={actual.a} revelada={revelada} consigna={actual.q} ir={ir}
+          <Responder clave={actual.qid} modelo={actual.a} revelada={revelada}
                      filas={actual.tipo === 'practico' ? 6 : 3} />
 
           {!revelada ? (

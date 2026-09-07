@@ -8,7 +8,7 @@ import type { SVGProps, ReactElement } from 'react'
 
 export type NombreIcono =
   | 'buscar' | 'menu' | 'chevron' | 'flecha' | 'check' | 'cruz'
-  | 'externo' | 'reloj' | 'deshacer' | 'libro' | 'consola' | 'calendario' | 'chispa'
+  | 'externo' | 'reloj' | 'deshacer' | 'libro' | 'consola' | 'calendario'
 
 interface Props extends Omit<SVGProps<SVGSVGElement>, 'name'> {
   nombre: NombreIcono
@@ -30,10 +30,7 @@ const TRAZOS: Record<NombreIcono, ReactElement> = {
   deshacer: <><path d="M3.2 6.4h6.2a3.4 3.4 0 0 1 0 6.8H6.6" /><path d="m5.8 3.6-2.6 2.8 2.6 2.8" /></>,
   libro: <><path d="M2.8 3.2h4a2 2 0 0 1 2 2v8a1.6 1.6 0 0 0-1.6-1.6H2.8Z" /><path d="M13.2 3.2h-4a2 2 0 0 0-2 2v8a1.6 1.6 0 0 1 1.6-1.6h4.4Z" /></>,
   consola: <><rect x="2.4" y="3.2" width="11.2" height="9.6" rx="1.6" /><path d="m5.4 6.6 1.8 1.6-1.8 1.6" /><path d="M8.8 10h2.4" /></>,
-  calendario: <><rect x="2.6" y="3.6" width="10.8" height="9.6" rx="1.6" /><path d="M2.6 6.6h10.8" /><path d="M5.6 2.4v2.4" /><path d="M10.4 2.4v2.4" /></>,
-  /* Una chispa grande y una chica: marca lo que opinó un modelo, para que nunca se
-     confunda con el ✓ del motor, que es el que sí verifica. */
-  chispa: <><path d="M6.4 2.4 7.6 5.9l3.5 1.2-3.5 1.2-1.2 3.5-1.2-3.5L1.7 7.1l3.5-1.2Z" /><path d="M11.8 9.4l.6 1.7 1.7.6-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6Z" /></>
+  calendario: <><rect x="2.6" y="3.6" width="10.8" height="9.6" rx="1.6" /><path d="M2.6 6.6h10.8" /><path d="M5.6 2.4v2.4" /><path d="M10.4 2.4v2.4" /></>
 }
 
 export default function Icono({ nombre, tam = 16, titulo, ...resto }: Props) {

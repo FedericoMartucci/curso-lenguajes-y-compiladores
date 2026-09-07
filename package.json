@@ -9,7 +9,7 @@
     "build": "node build.js && vite build",
     "preview": "vite preview",
     "data": "node build.js",
-    "test": "node tests/run.ts && node tests/fusion.ts",
+    "test": "node tests/run.ts && node tests/fusion.ts && node tests/comparar.ts",
     "smoke": "node tests/_bundle.mjs && node tests/.smoke.bundle.mjs",
     "check": "npm run tipos && npm run test && npm run contraste && npm run smoke",
     "tipos": "tsc --noEmit",
