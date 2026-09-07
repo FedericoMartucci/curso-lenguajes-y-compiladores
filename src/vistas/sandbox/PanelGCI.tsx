@@ -4,10 +4,11 @@ import { testIntermedia } from '../../engines/polaca.ts'
 import { useProgreso } from '../../lib/progreso.tsx'
 import type { ResultadoEjecucion } from '../../tipos/motores.ts'
 import type { Ruta } from '../../lib/router.ts'
-import { EncabezadoEjercicio, useBorrador } from './marco.tsx'
+import { EncabezadoEjercicio, TrasResolver, useBorrador } from './marco.tsx'
 import { CasosEjecucion } from '../../componentes/Casos.tsx'
 import Campo from '../../ui/Campo.tsx'
 import Boton from '../../ui/Boton.tsx'
+import Icono from '../../ui/Icono.tsx'
 
 export default function PanelGCI({ id, ir }: { id: string; ir: (r: Ruta) => void }) {
   const e = GCI.find((x) => x.id === id) ?? (GCI[0] as typeof GCI[number])
@@ -30,7 +31,7 @@ export default function PanelGCI({ id, ir }: { id: string; ir: (r: Ruta) => void
         tipo="gci" e={e} casos={e.casos.length} lista={GCI} ir={ir}
         extra={
           <div className="honestidad">
-            <span aria-hidden="true">▶</span>
+            <Icono nombre="consola" tam={16} />
             <p>
               <b>Se valida ejecutando.</b> Tu {tercetos ? 'lista de tercetos' : 'polaca'} se corre con los
               valores iniciales de cada caso y se comparan las variables finales: cualquier solución que dé
@@ -72,6 +73,8 @@ export default function PanelGCI({ id, ir }: { id: string; ir: (r: Ruta) => void
       </div>
 
       <CasosEjecucion resultado={res} />
+
+      <TrasResolver ok={res?.ok === true} tipo="gci" actual={e.id} lista={GCI} ir={ir} />
 
       <details style={{ marginTop: 'var(--s5)' }}>
         <summary style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 'var(--fs-base)' }}>

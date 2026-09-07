@@ -127,11 +127,15 @@ input.control { height: 36px; }
   background: var(--hairline);
   overflow: hidden;
 }
+/* Se escala en X en vez de animar `width`: animar una propiedad de layout provoca
+   reflow en cada frame, y hay hasta seis barras visibles a la vez en el plan. */
 .barra > i {
-  display: block; height: 100%;
+  display: block; height: 100%; width: 100%;
   background: var(--accent);
   border-radius: inherit;
-  transition: width var(--dur-slow) var(--ease-out);
+  transform-origin: left center;
+  transform: scaleX(var(--avance, 0));
+  transition: transform var(--dur-slow) var(--ease-out);
 }
 .barra--ok > i { background: var(--ok); }
 .barra--alta { height: 10px; }
@@ -285,3 +289,16 @@ kbd {
 .skel-prosa .skel { height: 1.05em; }
 .skel-prosa .skel:nth-child(4n) { width: 62%; margin-bottom: var(--s4); }
 .skel-prosa .skel:nth-child(5n) { width: 88%; }
+
+/* ============ Iconos ============ */
+.ico { flex: 0 0 auto; display: block; }
+/* El chevron de un grupo colapsable gira; nada más se mueve en el sistema de iconos. */
+.ico--gira { transition: transform var(--dur) var(--ease-out); }
+[aria-expanded='true'] > .ico--gira { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) { .ico--gira { transition: none; } }
+
+/* Un enlace que termina en flecha: el icono acompaña al texto y no se separa al hacer wrap. */
+.enlace-flecha { display: inline-flex; align-items: center; gap: 5px; }
+.enlace-flecha .ico { transition: transform var(--dur) var(--ease-out); }
+.enlace-flecha:hover .ico { transform: translateX(2px); }
+@media (prefers-reduced-motion: reduce) { .enlace-flecha:hover .ico { transform: none; } }

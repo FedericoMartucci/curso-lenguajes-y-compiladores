@@ -19,6 +19,7 @@ import Ajustes from './vistas/Ajustes.tsx'
 import NoEncontrado from './vistas/NoEncontrado.tsx'
 import Entrada from './vistas/Entrada.tsx'
 import { SkeletonProsa } from './ui/Cargando.tsx'
+import Icono from './ui/Icono.tsx'
 
 /* Estas dos arrastran datos pesados (279 kB de transcripciones y 66 kB de enunciados)
    y se visitan poco: se cargan al entrar. */
@@ -109,10 +110,12 @@ function Contenido() {
             onClick={() => setDrawer(true)}
             aria-label="Abrir navegación" aria-expanded={drawer}
           >
-            ☰
+            <Icono nombre="menu" tam={18} />
           </button>
           <span className="superior__titulo">{TITULOS[ruta.v] ?? 'Lenguajes y Compiladores'}</span>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setPaleta(true)} aria-label="Buscar">⌕</button>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setPaleta(true)} aria-label="Buscar">
+            <Icono nombre="buscar" tam={18} />
+          </button>
         </header>
 
         <main className="principal" id="contenido" tabIndex={-1}>

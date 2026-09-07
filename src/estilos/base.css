@@ -41,6 +41,7 @@ a {
 a:hover { text-decoration: underline; }
 
 button, input, select, textarea { font: inherit; color: inherit; }
+input, textarea { caret-color: var(--accent); }
 
 button { cursor: pointer; }
 button:disabled { cursor: default; }
@@ -110,3 +111,37 @@ img, svg, video { max-width: 100%; }
     scroll-behavior: auto !important;
   }
 }
+
+/* ===================== Superficies del navegador =====================
+   Las partes que no dibujamos también son parte del diseño: sin esto, la app hereda
+   scrollbars y cifras del sistema operativo, que no pertenecen a ningún sistema visual. */
+
+/* Barras de scroll con la paleta. Firefox por propiedad estándar, WebKit por pseudoelemento. */
+* { scrollbar-width: thin; scrollbar-color: var(--hairline-strong) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--hairline-strong);
+  border-radius: var(--r-full);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--ink-3); background-clip: content-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* Cifras de ancho fijo donde son datos: contadores, progresos, relojes y tablas.
+   Sin esto los números bailan al actualizarse y la columna se mueve. */
+.dato__v, .drill__cuenta, .reloj, .mod__cuenta, .sem__n,
+.semana-chip__pct, .nav__link__cuenta, .nav__link__aviso,
+.tabla-slr td, .caso__s, .sb__indice__hd {
+  font-variant-numeric: tabular-nums;
+}
+
+/* El subrayado de los enlaces en prosa no toca las descendentes. */
+.prosa a, .qa__resp a, .tarjeta__resp a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.prosa a:hover, .qa__resp a:hover, .tarjeta__resp a:hover { text-decoration-color: var(--accent); }

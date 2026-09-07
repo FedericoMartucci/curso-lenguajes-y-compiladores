@@ -8,6 +8,7 @@ import type { Progreso, Tarjeta, ProgresoEjercicio, Calificacion, ProgresoV1 } f
 import type { TipoEjercicio } from '../tipos/ejercicios.ts'
 import { calificar as calificarTarjeta, vencida } from './srs.ts'
 import { leerGuardado, escribirGuardado } from './hooks.ts'
+import { fusionar } from './fusion.ts'
 import { useSesion } from './sesion.tsx'
 import { sincronizar } from './sync.ts'
 
@@ -53,46 +54,10 @@ function cargar(): Progreso {
   return crudo ? base : migrarV1(base)
 }
 
-/** Fusiona dos versiones del progreso quedándose con lo más reciente de cada parte.
-    Se usa entre pestañas y, más adelante, contra lo que venga del servidor. */
-export function fusionar(a: Progreso, b: Progreso): Progreso {
-  const nuevo = b.actualizado >= a.actualizado ? b : a
-  const viejo = nuevo === b ? a : b
-
-  const leidas = { ...viejo.leidas, ...nuevo.leidas }
-
-  const preguntas = { ...viejo.preguntas }
-  Object.entries(nuevo.preguntas).forEach(([k, t]) => {
-    const previo = preguntas[k]
-    if (!previo || t.visto >= previo.visto) preguntas[k] = t
-  })
-
-  const ejercicios = { ...viejo.ejercicios }
-  Object.entries(nuevo.ejercicios).forEach(([k, e]) => {
-    const previo = ejercicios[k]
-    if (!previo) { ejercicios[k] = e; return }
-    // resolver un ejercicio no se deshace, y los intentos se acumulan
-    ejercicios[k] = {
-      resuelto: previo.resuelto || e.resuelto,
-      intentos: Math.max(previo.intentos, e.intentos),
-      ...((e.actualizado >= previo.actualizado ? e.borrador : previo.borrador)
-        ? { borrador: (e.actualizado >= previo.actualizado ? e.borrador : previo.borrador) as Record<string, string> }
-        : {}),
-      actualizado: Math.max(previo.actualizado, e.actualizado)
-    }
-  })
-
-  return {
-    v: 2,
-    leidas, preguntas, ejercicios,
-    semana: nuevo.semana,
-    cerradas: [...new Set([...viejo.cerradas, ...nuevo.cerradas])].sort((x, y) => x - y),
-    ritmo: nuevo.ritmo,
-    actualizado: Math.max(a.actualizado, b.actualizado)
-  }
-}
 
 /* ---------- API del store ---------- */
+
+export { fusionar }
 
 export const claveEjercicio = (tipo: TipoEjercicio, id: string): string => `${tipo}:${id}`
 
@@ -106,6 +71,8 @@ export interface StoreProgreso {
   /* preguntas */
   tarjeta: (qid: string) => Tarjeta | undefined
   calificar: (qid: string, nota: Calificacion) => void
+  /** Vuelve una tarjeta a un estado anterior. `undefined` la deja como nunca vista. */
+  restaurarTarjeta: (qid: string, tarjeta: Tarjeta | undefined) => void
   vencidas: (qids: string[]) => string[]
 
   /* ejercicios */
@@ -221,6 +188,12 @@ export function ProveedorProgreso({ children }: { children: ReactNode }) {
     calificar: (qid, nota) => actualizar((p) => ({
       ...p, preguntas: { ...p.preguntas, [qid]: calificarTarjeta(p.preguntas[qid], nota) }
     })),
+    restaurarTarjeta: (qid, tarjeta) => actualizar((p) => {
+      const preguntas = { ...p.preguntas }
+      if (tarjeta) preguntas[qid] = tarjeta
+      else delete preguntas[qid]
+      return { ...p, preguntas }
+    }),
     vencidas: (qids) => qids.filter((q) => vencida(progreso.preguntas[q])),
 
     ejercicio: (tipo, id) => progreso.ejercicios[claveEjercicio(tipo, id)],

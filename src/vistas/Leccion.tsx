@@ -9,6 +9,7 @@ import Enlace from '../componentes/Enlace.tsx'
 import Boton from '../ui/Boton.tsx'
 import Pill, { BadgeLeccion } from '../ui/Pill.tsx'
 import NoEncontrado from './NoEncontrado.tsx'
+import Icono from '../ui/Icono.tsx'
 import { SkeletonProsa } from '../ui/Cargando.tsx'
 
 interface Props { id: string; ir: (r: Ruta) => void }
@@ -60,7 +61,7 @@ export default function Leccion({ id, ir }: Props) {
             variante={yaLeida ? 'secondary' : 'primary'}
             onClick={() => marcarLeida(l.id, !yaLeida)}
           >
-            {yaLeida ? '✓ Leída' : 'Marcar como leída'}
+            {yaLeida ? <><Icono nombre="check" tam={15} />Leída</> : 'Marcar como leída'}
           </Boton>
         }
       />
@@ -73,7 +74,9 @@ export default function Leccion({ id, ir }: Props) {
         <div className="artefacto">
           <div className="artefacto__hd">
             <span>visualizador · {l.artifactTitle || 'interactivo'}</span>
-            <a href={l.artifact} target="_blank" rel="noopener noreferrer">abrir en otra pestaña ↗</a>
+            <a href={l.artifact} target="_blank" rel="noopener noreferrer" className="enlace-flecha">
+              abrir en otra pestaña<Icono nombre="externo" tam={13} />
+            </a>
           </div>
           <iframe
             src={l.artifact} style={{ height: (l.artifactH || 620) + 'px' }}
@@ -99,6 +102,29 @@ export default function Leccion({ id, ir }: Props) {
             </details>
           ))}
         </section>
+      )}
+
+      {/* Solo cuando queda algo por hacer: si ya está leída, el paginador de abajo alcanza
+          y esta barra sería un segundo control para el mismo destino. */}
+      {!yaLeida && (
+        <div className="cierre-leccion">
+          <div className="cierre-leccion__cuerpo">
+            <p className="cierre-leccion__t">¿Terminaste esta lección?</p>
+            <p className="cierre-leccion__sub">
+              Marcarla la saca de tu meta del día y pone sus {l.nq} preguntas en el repaso.
+            </p>
+          </div>
+          <Boton
+            variante="primary"
+            onClick={() => {
+              marcarLeida(l.id)
+              if (next) ir({ v: 'leccion', id: next.id })
+            }}
+          >
+            {next ? 'Leída y seguir' : 'Marcar como leída'}
+            {next && <Icono nombre="flecha" tam={15} />}
+          </Boton>
+        </div>
       )}
 
       <nav className="pager" aria-label="Lecciones contiguas">

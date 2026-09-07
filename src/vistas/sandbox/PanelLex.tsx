@@ -5,12 +5,13 @@ import { testAccionCodigo, codigoModelo } from '../../engines/accionLexica.ts'
 import { useProgreso } from '../../lib/progreso.tsx'
 import type { ResultadoCasos } from '../../tipos/motores.ts'
 import type { Ruta } from '../../lib/router.ts'
-import { EncabezadoEjercicio, useBorrador } from './marco.tsx'
+import { EncabezadoEjercicio, TrasResolver, useBorrador } from './marco.tsx'
 import { Casos } from '../../componentes/Casos.tsx'
 import Teclado from '../../componentes/Teclado.tsx'
 import CodeEditor from '../../componentes/CodeEditor.tsx'
 import Campo from '../../ui/Campo.tsx'
 import Boton from '../../ui/Boton.tsx'
+import Icono from '../../ui/Icono.tsx'
 
 const PLANTILLA = `ACCION LEXICA
 {
@@ -49,7 +50,7 @@ export default function PanelLex({ id, ir }: { id: string; ir: (r: Ruta) => void
         tipo="lex" e={e} casos={e.tests.length} lista={LEX} ir={ir}
         extra={
           <div className="honestidad">
-            <span aria-hidden="true">→</span>
+            <Icono nombre="libro" tam={16} />
             <p>
               <b>La ER reconoce la forma; la acción valida la cota.</b> Un lexema con forma correcta pero
               fuera de cota se rechaza en la acción, en tiempo de compilación. Los casos incluyen siempre
@@ -106,6 +107,8 @@ export default function PanelLex({ id, ir }: { id: string; ir: (r: Ruta) => void
       </div>
 
       <Casos resultado={res} />
+
+      <TrasResolver ok={res?.ok === true} tipo="lex" actual={e.id} lista={LEX} ir={ir} />
 
       <details style={{ marginTop: 'var(--s5)' }}>
         <summary style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 'var(--fs-base)' }}>

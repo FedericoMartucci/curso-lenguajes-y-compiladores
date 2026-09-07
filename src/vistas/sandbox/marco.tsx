@@ -4,12 +4,13 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { TipoEjercicio, Decorado, EjercicioBase } from '../../tipos/ejercicios.ts'
-import { agrupar } from '../../lib/ejercicios.ts'
+import { agrupar, numeroVisible } from '../../lib/ejercicios.ts'
 import { useProgreso } from '../../lib/progreso.tsx'
 import type { Ruta } from '../../lib/router.ts'
 import Enlace from '../../componentes/Enlace.tsx'
 import Pill from '../../ui/Pill.tsx'
 import Boton from '../../ui/Boton.tsx'
+import Icono from '../../ui/Icono.tsx'
 
 /* ---------- índice lateral: reemplaza al <select> de 32 opciones ---------- */
 
@@ -52,20 +53,15 @@ export function IndiceEjercicios<E extends EjercicioBase>({ tipo, lista, actual,
           <div key={g.nombre}>
             <p className="sb__grupo">{g.nombre}</p>
             {g.items.map((e) => {
-              // los números cortos ('1a', '4c') van en columna; los largos ('constante Float')
-              // no entran y se leen mejor como prefijo del título
-              const corto = e.num.length <= 7
+              const num = numeroVisible(e.num)
               return (
                 <Enlace
                   key={e.id} a={{ v: 'sandbox', tipo, ej: e.id }} ir={ir}
-                  className="sb__ej" activo={e.id === actual}
+                  className={'sb__ej' + (num ? '' : ' sb__ej--sin-num')} activo={e.id === actual}
                 >
-                  {corto && <span className="sb__ej__num">{e.num}</span>}
-                  <span className="sb__ej__t">
-                    {!corto && <span className="sb__ej__pref">{e.num} · </span>}
-                    {e.t}
-                  </span>
-                  {resuelto(tipo, e.id) && <span className="sb__ej__tick" aria-label="resuelto">✓</span>}
+                  {num && <span className="sb__ej__num" title={num}>{num}</span>}
+                  <span className="sb__ej__t">{e.t}</span>
+                  {resuelto(tipo, e.id) && <Icono nombre="check" tam={13} titulo="resuelto" className="sb__ej__tick" />}
                 </Enlace>
               )
             })}
@@ -99,19 +95,23 @@ export function EncabezadoEjercicio({ tipo, e, casos, lista, ir, extra }: Encabe
     <>
       <div className="tira" style={{ justifyContent: 'space-between', marginBottom: 'var(--s3)' }}>
         <div className="tira" style={{ gap: 'var(--s2)' }}>
-          <Pill tono="neutra" mono>{e.grupo} · {e.num}</Pill>
+          <Pill tono="neutra" mono>{e.grupo}{numeroVisible(e.num) ? ` · ${e.num}` : ''}</Pill>
           <Pill tono={e.nivel === 'difícil' ? 'aviso' : 'neutra'}>{e.nivel}</Pill>
           <Pill tono="neutra">{casos} {casos === 1 ? 'caso' : 'casos'}</Pill>
-          {resuelto(tipo, e.id) && <Pill tono="ok">✓ resuelto</Pill>}
+          {resuelto(tipo, e.id) && <Pill tono="ok"><Icono nombre="check" tam={12} />resuelto</Pill>}
           {!resuelto(tipo, e.id) && est && est.intentos > 0 && (
             <Pill tono="neutra">{est.intentos} {est.intentos === 1 ? 'intento' : 'intentos'}</Pill>
           )}
         </div>
         <div className="tira" style={{ gap: 'var(--s2)' }}>
           <Boton tamaño="sm" variante="ghost" disabled={!prev}
-                 onClick={() => prev && ir({ v: 'sandbox', tipo, ej: prev.id })}>‹ anterior</Boton>
+                 onClick={() => prev && ir({ v: 'sandbox', tipo, ej: prev.id })}>
+            <Icono nombre="chevron" tam={13} style={{ transform: 'rotate(180deg)' }} />anterior
+          </Boton>
           <Boton tamaño="sm" variante="ghost" disabled={!next}
-                 onClick={() => next && ir({ v: 'sandbox', tipo, ej: next.id })}>siguiente ›</Boton>
+                 onClick={() => next && ir({ v: 'sandbox', tipo, ej: next.id })}>
+            siguiente<Icono nombre="chevron" tam={13} />
+          </Boton>
         </div>
       </div>
 
@@ -119,12 +119,58 @@ export function EncabezadoEjercicio({ tipo, e, casos, lista, ir, extra }: Encabe
       <p className="consigna">{e.c}</p>
       {e.nota && (
         <div className="honestidad">
-          <span aria-hidden="true">!</span>
+          <Icono nombre="libro" tam={16} />
           <p><b>Qué valida y qué no:</b> {e.nota}</p>
         </div>
       )}
       {extra}
     </>
+  )
+}
+
+/* ---------- después de resolver ---------- */
+
+interface TrasResolverProps {
+  /** true solo cuando la validación que se acaba de correr pasó. */
+  ok: boolean
+  tipo: TipoEjercicio
+  actual: string
+  lista: Decorado<EjercicioBase>[]
+  ir: (r: Ruta) => void
+}
+
+/** El paso natural después de un ✓ es el ejercicio siguiente, no volver al índice. */
+export function TrasResolver({ ok, tipo, actual, lista, ir }: TrasResolverProps) {
+  const { resuelto } = useProgreso()
+  if (!ok) return null
+
+  const ix = lista.findIndex((x) => x.id === actual)
+  // el siguiente sin resolver, o simplemente el siguiente si ya están todos
+  const pendiente = lista.slice(ix + 1).find((x) => !resuelto(tipo, x.id))
+  const siguiente = pendiente ?? lista[ix + 1]
+  const quedan = lista.filter((x) => !resuelto(tipo, x.id)).length
+
+  if (!siguiente) {
+    return (
+      <div className="tras-resolver">
+        <p>Terminaste todos los ejercicios de esta solapa.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="tras-resolver">
+      <div>
+        <p className="tras-resolver__t">Sigue: {siguiente.t}</p>
+        <p className="tras-resolver__sub">
+          {quedan === 0 ? 'No queda ninguno pendiente' : `${quedan} ${quedan === 1 ? 'pendiente' : 'pendientes'} en esta solapa`}
+        </p>
+      </div>
+      <Boton variante="primary" onClick={() => ir({ v: 'sandbox', tipo, ej: siguiente.id })}>
+        Siguiente ejercicio
+        <Icono nombre="flecha" tam={15} />
+      </Boton>
+    </div>
   )
 }
 

@@ -4,10 +4,11 @@ import { testAssembler } from '../../engines/coprocesador.ts'
 import { useProgreso } from '../../lib/progreso.tsx'
 import type { ResultadoEjecucion } from '../../tipos/motores.ts'
 import type { Ruta } from '../../lib/router.ts'
-import { EncabezadoEjercicio, useBorrador } from './marco.tsx'
+import { EncabezadoEjercicio, TrasResolver, useBorrador } from './marco.tsx'
 import { CasosEjecucion } from '../../componentes/Casos.tsx'
 import Campo from '../../ui/Campo.tsx'
 import Boton from '../../ui/Boton.tsx'
+import Icono from '../../ui/Icono.tsx'
 
 export default function PanelASM({ id, ir }: { id: string; ir: (r: Ruta) => void }) {
   const e = ASM.find((x) => x.id === id) ?? (ASM[0] as typeof ASM[number])
@@ -29,7 +30,7 @@ export default function PanelASM({ id, ir }: { id: string; ir: (r: Ruta) => void
         tipo="asm" e={e} casos={e.casos.length} lista={ASM} ir={ir}
         extra={
           <div className="honestidad">
-            <span aria-hidden="true">▶</span>
+            <Icono nombre="consola" tam={16} />
             <p>
               <b>Corre en un simulador del 8087.</b> <code>FADD/FSUB/FMUL/FDIV</code> hacen{' '}
               <code>ST(1) := ST(1) op ST(0)</code> y después <code>pop</code>, así que el orden en que
@@ -59,6 +60,8 @@ export default function PanelASM({ id, ir }: { id: string; ir: (r: Ruta) => void
       </div>
 
       <CasosEjecucion resultado={res} />
+
+      <TrasResolver ok={res?.ok === true} tipo="asm" actual={e.id} lista={ASM} ir={ir} />
 
       <details style={{ marginTop: 'var(--s5)' }}>
         <summary style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 'var(--fs-base)' }}>

@@ -19,7 +19,7 @@ export function Barra({ valor, tono = 'acento', alta = false, etiqueta }: BarraP
       aria-valuemax={etiqueta ? 100 : undefined}
       aria-label={etiqueta}
     >
-      <i style={{ width: pct + '%' }} />
+      <i style={{ ['--avance' as string]: pct / 100 }} />
     </div>
   )
 }

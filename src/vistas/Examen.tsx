@@ -9,6 +9,7 @@ import Enlace from '../componentes/Enlace.tsx'
 import Boton from '../ui/Boton.tsx'
 import Pill from '../ui/Pill.tsx'
 import { Barra } from '../ui/Progreso.tsx'
+import Icono from '../ui/Icono.tsx'
 
 type Alcance = 'I' | 'II' | 'todo'
 
@@ -156,7 +157,7 @@ export default function Examen({ ir }: { ir: (r: Ruta) => void }) {
                       <span className="meta-item__t">{q.q}</span>
                       <span className="meta-item__sub">Módulo {q.modId} · {q.lt}</span>
                     </span>
-                    <span className="meta-item__flecha" aria-hidden="true">→</span>
+                    <Icono nombre="flecha" tam={14} className="meta-item__flecha" />
                   </Enlace>
                 ))}
               </div>
@@ -186,6 +187,7 @@ export default function Examen({ ir }: { ir: (r: Ruta) => void }) {
         acciones={
           <div className="tira">
             <span className={'reloj' + (poco ? ' reloj--poco' : '')} role="timer" aria-live="off">
+              <Icono nombre="reloj" tam={18} />
               {reloj(restante)}
             </span>
             <Boton variante="ghost" onClick={terminar}>Terminar</Boton>

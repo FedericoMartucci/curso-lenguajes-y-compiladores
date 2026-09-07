@@ -1,4 +1,5 @@
 import type { ResultadoCasos, CasoCorrido, ResultadoEjecucion } from '../tipos/motores.ts'
+import Icono from '../ui/Icono.tsx'
 
 const muestra = (s: string): string =>
   s === '' ? '⟨cadena vacía⟩' : s.length > 52 ? s.slice(0, 52) + '…' : s
@@ -27,7 +28,7 @@ export function Casos({ resultado, extra }: Props) {
   return (
     <div>
       <p className={'veredicto veredicto--' + (resultado.ok ? 'ok' : 'bad')} role="status">
-        <span aria-hidden="true">{resultado.ok ? '✓' : '✗'}</span>
+        <Icono nombre={resultado.ok ? 'check' : 'cruz'} tam={18} />
         {resultado.ok
           ? `Correcta. Acepta y rechaza los ${resultado.casos.length} casos.`
           : `Todavía no: ${fallan} de ${resultado.casos.length} ${fallan === 1 ? 'caso falla' : 'casos fallan'}.`}
@@ -44,7 +45,7 @@ export function Casos({ resultado, extra }: Props) {
         {/* los que fallan van primero: es lo que hay que mirar */}
         {[...todo].sort((a, b) => Number(a.pass) - Number(b.pass)).map((c, i) => (
           <div key={i} className={'caso caso--' + (c.pass ? 'pass' : 'fail')}>
-            <span className="caso__ico" aria-hidden="true">{c.pass ? '✓' : '✗'}</span>
+            <Icono nombre={c.pass ? 'check' : 'cruz'} tam={13} className="caso__ico" />
             <span className="caso__s">{muestra(c.s)}</span>
             <span className="caso__exp">{explicar(c)}</span>
           </div>
@@ -61,7 +62,7 @@ export function CasosEjecucion({ resultado }: { resultado: ResultadoEjecucion | 
   return (
     <div>
       <p className={'veredicto veredicto--' + (resultado.ok ? 'ok' : 'bad')} role="status">
-        <span aria-hidden="true">{resultado.ok ? '✓' : '✗'}</span>
+        <Icono nombre={resultado.ok ? 'check' : 'cruz'} tam={18} />
         {resultado.ok
           ? `Correcta. Da el resultado esperado en los ${resultado.resultados.length} casos.`
           : `Todavía no: ${fallan} de ${resultado.resultados.length} ${fallan === 1 ? 'caso falla' : 'casos fallan'}.`}
@@ -69,7 +70,7 @@ export function CasosEjecucion({ resultado }: { resultado: ResultadoEjecucion | 
       <div className="casos">
         {[...resultado.resultados].sort((a, b) => Number(a.pass) - Number(b.pass)).map((r, i) => (
           <div key={i} className={'caso caso--' + (r.pass ? 'pass' : 'fail')}>
-            <span className="caso__ico" aria-hidden="true">{r.pass ? '✓' : '✗'}</span>
+            <Icono nombre={r.pass ? 'check' : 'cruz'} tam={13} className="caso__ico" />
             <span className="caso__s">
               {Object.entries(r.inicial).map(([k, v]) => `${k}=${v}`).join('  ') || 'sin valores iniciales'}
             </span>

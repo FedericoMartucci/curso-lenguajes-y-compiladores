@@ -2,12 +2,14 @@ import { useMemo } from 'react'
 import type { Ruta } from '../lib/router.ts'
 import type { Hoy } from '../lib/hoy.ts'
 import { calcularAvance } from '../lib/hoy.ts'
+import { numeroVisible } from '../lib/ejercicios.ts'
 import { useProgreso } from '../lib/progreso.tsx'
 import Enlace from '../componentes/Enlace.tsx'
 import Cabecera from './Cabecera.tsx'
 import Boton from '../ui/Boton.tsx'
 import Pill from '../ui/Pill.tsx'
 import { Barra } from '../ui/Progreso.tsx'
+import Icono from '../ui/Icono.tsx'
 
 interface Props { ir: (r: Ruta) => void; hoy: Hoy }
 
@@ -70,7 +72,7 @@ export default function Inicio({ ir, hoy }: Props) {
                 {(l.badges ?? []).includes('🎯') && (
                   <span className="marca-tema" title="Este tema entra al parcial" aria-label="entra al parcial">🎯</span>
                 )}
-                <span className="meta-item__flecha" aria-hidden="true">→</span>
+                <Icono nombre="flecha" tam={14} className="meta-item__flecha" />
               </Enlace>
             ))}
           </div>
@@ -85,7 +87,7 @@ export default function Inicio({ ir, hoy }: Props) {
             </p>
             <div className="tira">
               <Boton variante="primary" onClick={() => cerrarSemana(semana.n)}>
-                Cerrar la semana {semana.n} →
+                Cerrar la semana {semana.n}<Icono nombre="flecha" tam={14} />
               </Boton>
               <Enlace a={{ v: 'plan' }} ir={ir}>ver el plan completo</Enlace>
             </div>
@@ -136,13 +138,15 @@ export default function Inicio({ ir, hoy }: Props) {
                   <Enlace key={e.tipo + e.id} a={{ v: 'sandbox', tipo: e.tipo, ej: e.id }} ir={ir} className="meta-item">
                     <span className="meta-item__cuerpo">
                       <span className="meta-item__t">{e.t}</span>
-                      <span className="meta-item__sub">{e.etiquetaTipo} · {e.grupo} · {e.num}</span>
+                      <span className="meta-item__sub">{e.etiquetaTipo} · {e.grupo}{numeroVisible(e.num) ? ` · ${e.num}` : ''}</span>
                     </span>
-                    <span className="meta-item__flecha" aria-hidden="true">→</span>
+                    <Icono nombre="flecha" tam={14} className="meta-item__flecha" />
                   </Enlace>
                 ))}
               </div>
-              <Enlace a={{ v: 'sandbox' }} ir={ir}>ver los {pendientes.length} pendientes →</Enlace>
+              <Enlace a={{ v: 'sandbox' }} ir={ir} className="enlace-flecha">
+                ver los {pendientes.length} pendientes<Icono nombre="flecha" tam={13} />
+              </Enlace>
             </>
           ) : (
             <p style={{ color: 'var(--ink-2)' }}>

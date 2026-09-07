@@ -9,6 +9,7 @@ import { useEscape } from '../lib/hooks.ts'
 import Enlace from './Enlace.tsx'
 import { Barra } from '../ui/Progreso.tsx'
 import EstadoSync from './EstadoSync.tsx'
+import Icono from '../ui/Icono.tsx'
 
 interface Props {
   ruta: Ruta
@@ -86,7 +87,7 @@ export default function BarraLateral({
         </Enlace>
 
         <button type="button" className="buscador-btn" onClick={abrirPaleta}>
-          <span aria-hidden="true">⌕</span>
+          <Icono nombre="buscar" />
           <span className="buscador-btn__t">Buscar…</span>
           <kbd>⌘K</kbd>
         </button>
@@ -144,7 +145,7 @@ export default function BarraLateral({
                     return n
                   })}
                 >
-                  <span className="mod__flecha" aria-hidden="true">▶</span>
+                  <Icono nombre="chevron" tam={12} className="ico--gira mod__flecha" />
                   <span className="mod__n">{m.id}</span>
                   <span className="mod__t">{m.titulo}</span>
                   <span className="mod__cuenta">{hechas}/{m.lecciones.length}</span>
@@ -157,7 +158,7 @@ export default function BarraLateral({
                   >
                     <span className="les__n">{l.id}</span>
                     <span className="les__t">{l.titulo}</span>
-                    {leida(l.id) && <span className="les__tick" aria-label="leída">✓</span>}
+                    {leida(l.id) && <Icono nombre="check" tam={13} titulo="leída" className="les__tick" />}
                   </Enlace>
                 ))}
               </div>

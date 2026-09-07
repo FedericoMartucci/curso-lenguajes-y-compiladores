@@ -2,12 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { LECCIONES } from '../lib/curso.ts'
 import { SEMANAS } from '../lib/plan.ts'
 import type { Ruta } from '../lib/router.ts'
-import { TODOS_LOS_EJERCICIOS } from '../lib/ejercicios.ts'
+import { TODOS_LOS_EJERCICIOS, numeroVisible } from '../lib/ejercicios.ts'
 import type { TipoEjercicio } from '../tipos/ejercicios.ts'
+import Icono from '../ui/Icono.tsx'
 
 interface Item {
   clave: string
   seccion: string
+  /** Código corto de la solapa, o 'ir' para una acción de navegación. */
   icono: string
   titulo: string
   sub: string
@@ -23,15 +25,15 @@ interface Props {
 }
 
 const ACCIONES: Item[] = [
-  { clave: 'a:hoy', seccion: 'Ir a', icono: '→', titulo: 'Hoy', sub: 'Qué te toca esta semana', busca: 'hoy inicio panel', ruta: { v: 'inicio' } },
-  { clave: 'a:plan', seccion: 'Ir a', icono: '→', titulo: 'Plan de estudio', sub: 'Las 16 semanas de la cursada', busca: 'plan semanas cronograma', ruta: { v: 'plan' } },
-  { clave: 'a:ejerc', seccion: 'Ir a', icono: '→', titulo: 'Ejercitación', sub: 'Preguntas con repetición espaciada', busca: 'ejercitar preguntas repaso flashcards', ruta: { v: 'ejercitar' } },
-  { clave: 'a:sandbox', seccion: 'Ir a', icono: '→', titulo: 'Sandbox', sub: 'Ejercicios que se validan ejecutándose', busca: 'sandbox validar ejercicios', ruta: { v: 'sandbox' } },
-  { clave: 'a:examen', seccion: 'Ir a', icono: '→', titulo: 'Modo examen', sub: 'Tanda cronometrada con puntaje', busca: 'examen parcial simulacro cronometrado', ruta: { v: 'examen' } },
-  { clave: 'a:mesa', seccion: 'Ir a', icono: '→', titulo: 'Mesa de trabajo', sub: 'Símbolos, bloc y árboles', busca: 'mesa borrador arbol simbolos', ruta: { v: 'mesa' } },
-  { clave: 'a:practicas', seccion: 'Ir a', icono: '→', titulo: 'Enunciados', sub: 'Las 6 prácticas de la cátedra', busca: 'practicas enunciados consignas', ruta: { v: 'practicas' } },
-  { clave: 'a:clases', seccion: 'Ir a', icono: '→', titulo: 'Clases grabadas', sub: 'Transcripciones', busca: 'clases transcripciones grabadas audio', ruta: { v: 'clases' } },
-  { clave: 'a:ajustes', seccion: 'Ir a', icono: '→', titulo: 'Ajustes y cuenta', sub: 'Tema, ritmo, progreso', busca: 'ajustes cuenta tema oscuro ritmo', ruta: { v: 'ajustes' } }
+  { clave: 'a:hoy', seccion: 'Ir a', icono: 'ir', titulo: 'Hoy', sub: 'Qué te toca esta semana', busca: 'hoy inicio panel', ruta: { v: 'inicio' } },
+  { clave: 'a:plan', seccion: 'Ir a', icono: 'ir', titulo: 'Plan de estudio', sub: 'Las 16 semanas de la cursada', busca: 'plan semanas cronograma', ruta: { v: 'plan' } },
+  { clave: 'a:ejerc', seccion: 'Ir a', icono: 'ir', titulo: 'Ejercitación', sub: 'Preguntas con repetición espaciada', busca: 'ejercitar preguntas repaso flashcards', ruta: { v: 'ejercitar' } },
+  { clave: 'a:sandbox', seccion: 'Ir a', icono: 'ir', titulo: 'Sandbox', sub: 'Ejercicios que se validan ejecutándose', busca: 'sandbox validar ejercicios', ruta: { v: 'sandbox' } },
+  { clave: 'a:examen', seccion: 'Ir a', icono: 'ir', titulo: 'Modo examen', sub: 'Tanda cronometrada con puntaje', busca: 'examen parcial simulacro cronometrado', ruta: { v: 'examen' } },
+  { clave: 'a:mesa', seccion: 'Ir a', icono: 'ir', titulo: 'Mesa de trabajo', sub: 'Símbolos, bloc y árboles', busca: 'mesa borrador arbol simbolos', ruta: { v: 'mesa' } },
+  { clave: 'a:practicas', seccion: 'Ir a', icono: 'ir', titulo: 'Enunciados', sub: 'Las 6 prácticas de la cátedra', busca: 'practicas enunciados consignas', ruta: { v: 'practicas' } },
+  { clave: 'a:clases', seccion: 'Ir a', icono: 'ir', titulo: 'Clases grabadas', sub: 'Transcripciones', busca: 'clases transcripciones grabadas audio', ruta: { v: 'clases' } },
+  { clave: 'a:ajustes', seccion: 'Ir a', icono: 'ir', titulo: 'Ajustes y cuenta', sub: 'Tema, ritmo, progreso', busca: 'ajustes cuenta tema oscuro ritmo', ruta: { v: 'ajustes' } }
 ]
 
 /** Código corto de cada solapa, para ubicar el ejercicio de un vistazo en la lista. */
@@ -68,7 +70,7 @@ export default function PaletaComandos({ abierta, cerrar, ir }: Props) {
     ...TODOS_LOS_EJERCICIOS.map((e) => ({
       clave: `e:${e.tipo}:${e.id}`, seccion: 'Ejercicios', icono: CODIGO[e.tipo],
       titulo: e.t,
-      sub: `${e.etiquetaTipo} · ${e.grupo} · ${e.num}`,
+      sub: `${e.etiquetaTipo} · ${e.grupo}${numeroVisible(e.num) ? ' · ' + e.num : ''}`,
       busca: norm(`${e.t} ${e.grupo} ${e.num} ${e.fuente} ${e.etiquetaTipo} ${e.notacion ?? ''}`),
       ruta: { v: 'sandbox', tipo: e.tipo, ej: e.id } as Ruta
     }))
@@ -124,7 +126,7 @@ export default function PaletaComandos({ abierta, cerrar, ir }: Props) {
     >
       <div className="dlg__caja">
         <div className="paleta__campo">
-          <span className="paleta__lupa" aria-hidden="true">⌕</span>
+          <Icono nombre="buscar" tam={18} className="paleta__lupa" />
           <input
             ref={input} type="text" value={q} onChange={(e) => setQ(e.target.value)}
             placeholder="Buscá una lección, un ejercicio o una semana…"
@@ -151,7 +153,9 @@ export default function PaletaComandos({ abierta, cerrar, ir }: Props) {
                     onMouseEnter={() => setSel(ix)}
                     onClick={() => elegir(i)}
                   >
-                    <span className="paleta__item__icono" aria-hidden="true">{i.icono}</span>
+                    <span className="paleta__item__icono" aria-hidden="true">
+                      {i.icono === 'ir' ? <Icono nombre="flecha" tam={13} /> : i.icono}
+                    </span>
                     <span className="paleta__item__cuerpo">
                       <span className="paleta__item__titulo">{i.titulo}</span>
                       <span className="paleta__item__sub">{i.sub}</span>

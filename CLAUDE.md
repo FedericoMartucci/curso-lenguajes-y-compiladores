@@ -34,6 +34,7 @@ src/main.tsx  App.tsx      Arranque, shell, atajos globales y despacho de rutas.
 src/tipos/                 Tipos del dominio: curso, ejercicios, motores, plan, progreso.
 src/lib/
   router.ts                Router por History API. Rutas reales, sin hash.
+  fusion.ts                Fusión de dos versiones del progreso. Lógica pura, testeada aparte.
   curso.ts                 Índice del curso + carga diferida del contenido.
   contenido.ts             Hooks para el contenido diferido (useCuerpo, useBanco).
   ejercicios.ts            Índice único de los 98 ejercicios, decorados.
@@ -43,7 +44,7 @@ src/lib/
   srs.ts                   Repetición espaciada (SM-2 simplificado, tres calificaciones).
   sesion.tsx  supabase.ts  sync.ts    Cuenta con Google y sincronización.
   hooks.ts                 localStorage, tema, Escape, reduced-motion.
-src/ui/                    Primitivas: Boton, Pill, Campo, Progreso, Cargando.
+src/ui/                    Primitivas: Boton, Pill, Campo, Progreso, Cargando, Icono.
 src/componentes/           BarraLateral, PaletaComandos, Enlace, CodeEditor, Casos, Teclado.
 src/vistas/                Una por pantalla. sandbox/ tiene un panel por solapa.
 src/engines/               Lógica pura, sin React. Testeable desde node.
@@ -53,7 +54,7 @@ content/mod-00..15.js      FUENTE DE VERDAD de la teoría. Sigue en JS a propós
 public/fonts/              IBM Plex Sans y Mono, autoalojadas.
 public/artifacts/          Visualizadores embebidos por iframe en lecciones.
 supabase/esquema.sql       Tabla de progreso y políticas RLS.
-tests/                     run.ts (banco) y smoke.tsx (rutas).
+tests/                     run.ts (banco), fusion.ts (merge) y smoke.tsx (rutas).
 build.js                   content/ -> src/data/{indice,contenido}.ts
 ```
 
@@ -69,15 +70,20 @@ build.js                   content/ -> src/data/{indice,contenido}.ts
 3. **Todo ejercicio del sandbox debe tener una respuesta modelo que pase su propio set de casos.**
    `npm test` lo verifica. Es la red de seguridad principal del proyecto: no la desactives.
 4. **Todo ejercicio necesita entrada en `src/data/ejercicios/meta.ts`** (`grupo`, `num`, `orden`).
-   El test falla si queda alguno sin numerar. Si el `num` pasa de 7 caracteres, el índice lo muestra
-   como prefijo del título en vez de en la columna.
+   El test falla si queda alguno sin numerar. El `num` **solo se muestra si tiene un dígito**
+   (`numeroVisible` en `lib/ejercicios.ts`): en las prácticas 1 y 2 es un identificador real de la
+   cátedra (`1a`, `4c`), pero en las 3 a 6, que no vienen numeradas, es un apodo que repite el
+   título. Si agregás un ejercicio con un apodo descriptivo, no hace falta que lo acortes: no se va
+   a mostrar.
 5. **Local-first, no online-first.** El navegador es la fuente de verdad mientras usás la app; la
    cuenta es una copia que se fusiona por marca de tiempo. Ninguna acción del alumno puede quedar
    esperando a la red. Sin `VITE_SUPABASE_*` la app arranca en modo local, que es lo que permite
    desarrollar y correr los tests sin credenciales.
-6. **La fusión de progreso nunca pierde.** `fusionar()` en `progreso.tsx` es el único lugar donde se
-   resuelven conflictos: entre pestañas y contra el servidor. No desmarca un ejercicio resuelto ni
-   borra una lectura. Si agregás un campo al progreso, agregalo también ahí.
+6. **La fusión de progreso es el único lugar donde un bug pierde datos en silencio.**
+   `src/lib/fusion.ts` resuelve los conflictos entre pestañas y contra el servidor. Tiene que
+   distinguir dos cosas que se ven igual —la ausencia de una clave—: una entrada que el otro lado
+   todavía no vio, y una que el otro lado BORRÓ. Lo hace con las marcas de tiempo por entrada.
+   Si agregás un campo al progreso, agregalo también ahí **y sumá su caso a `tests/fusion.ts`**.
 7. **Rutas reales, no hash.** El rewrite está en `vercel.json`. Todo enlace interno usa el componente
    `Enlace`, que renderiza un `<a href>` real: se llega con Tab, se abre en otra pestaña y se copia
    el link. Nunca un `<a onClick>` sin href.
@@ -88,8 +94,11 @@ build.js                   content/ -> src/data/{indice,contenido}.ts
 10. **Ningún texto usa un gris más claro que `--ink-3`** (4.6:1 como piso, medido contra cada
     superficie en ambos temas). Los grises decorativos que no son texto viven en `--hairline`.
     Nunca un color literal fuera de `src/estilos/tokens.css`.
-11. **Español rioplatense** en todo el texto de la interfaz y del contenido, tratando de "vos".
-12. **Dependencias acotadas.** Hoy: `react`, `react-dom`, `@supabase/supabase-js`, `vite`,
+11. **Los iconos se dibujan, no se escriben.** `src/ui/Icono.tsx` es el set: misma grilla de 16,
+    trazo 1.5 y `currentColor`. Nada de `→ ✓ ✗ ☰ ⌕` como iconos. La excepción son los glifos del
+    teclado de la Mesa y los badges 🎯📘⚙️, que son notación y contenido de la materia, no interfaz.
+12. **Español rioplatense** en todo el texto de la interfaz y del contenido, tratando de "vos".
+13. **Dependencias acotadas.** Hoy: `react`, `react-dom`, `@supabase/supabase-js`, `vite`,
     `@vitejs/plugin-react`, `vite-plugin-pwa`, `typescript`. Antes de agregar una, evaluar si vale.
 
 ## Contratos de los motores
@@ -166,6 +175,9 @@ la ruta a la lista de `tests/smoke.tsx`.
   que ser `display: block`. Pasó tres veces: paginador, lista de metas y paleta de comandos.
 - **Persistir en un efecto de montaje escribe basura.** `useBorrador` guardaba el borrador al montar
   y creaba entradas de ejercicios nunca intentados. Solo se persiste después de una edición real.
+- **Unir dos mapas resucita lo borrado.** La primera versión de `fusionar` hacía `{...a, ...b}`, así
+  que desmarcar una lección o usar "borrar lecturas" quedaba deshecho por cualquier otra pestaña.
+  Una eliminación y un "todavía no lo vi" son la misma ausencia: hay que mirar las marcas de tiempo.
 
 ## Antes de commitear
 

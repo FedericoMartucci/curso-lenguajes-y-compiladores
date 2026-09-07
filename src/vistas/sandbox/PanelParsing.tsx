@@ -5,9 +5,10 @@ import { tablaSLR, validarConjuntos, reglasNumeradas, textoItem, textoAccion, FI
 import { useProgreso } from '../../lib/progreso.tsx'
 import type { InfoSLR, ResultadoConjuntos, Conflicto } from '../../tipos/motores.ts'
 import type { Ruta } from '../../lib/router.ts'
-import { EncabezadoEjercicio, useBorrador } from './marco.tsx'
+import { EncabezadoEjercicio, TrasResolver, useBorrador } from './marco.tsx'
 import Campo from '../../ui/Campo.tsx'
 import Boton from '../../ui/Boton.tsx'
+import Icono from '../../ui/Icono.tsx'
 
 const setTxt = (s: Iterable<string> | undefined) => [...(s ?? [])].sort().join(', ') || '∅'
 
@@ -56,7 +57,7 @@ export default function PanelParsing({ id, ir }: { id: string; ir: (r: Ruta) => 
         tipo="parsing" e={e} casos={info?.estados.length ?? 0} lista={PARSING} ir={ir}
         extra={
           <div className="honestidad">
-            <span aria-hidden="true">=</span>
+            <Icono nombre="libro" tam={16} />
             <p>
               <b>Acá no hay respuesta guardada:</b> los conjuntos y la tabla los calcula el motor a partir
               de esta gramática, así que la corrección siempre coincide con el enunciado.
@@ -117,7 +118,7 @@ export default function PanelParsing({ id, ir }: { id: string; ir: (r: Ruta) => 
       {res?.tipo === 'conjuntos' && (
         <>
           <p className={'veredicto veredicto--' + (res.ok ? 'ok' : 'bad')} role="status">
-            <span aria-hidden="true">{res.ok ? '✓' : '✗'}</span>
+            <Icono nombre={res.ok ? 'check' : 'cruz'} tam={18} />
             {res.ok ? 'Correcto. Los conjuntos coinciden.' : 'Todavía no: mirá las filas en rojo.'}
           </p>
           {res.partes.map(([cual, r]) => (
@@ -127,7 +128,7 @@ export default function PanelParsing({ id, ir }: { id: string; ir: (r: Ruta) => 
               <div className="casos">
                 {r.filas?.map((f) => (
                   <div key={f.nt} className={'caso caso--' + (f.pass ? 'pass' : 'fail')}>
-                    <span className="caso__ico" aria-hidden="true">{f.pass ? '✓' : '✗'}</span>
+                    <Icono nombre={f.pass ? 'check' : 'cruz'} tam={13} className="caso__ico" />
                     <span className="caso__s">{f.nt} = {setTxt(f.puesto)}</span>
                     <span className="caso__exp">
                       {f.pass ? 'correcto'
@@ -152,14 +153,14 @@ export default function PanelParsing({ id, ir }: { id: string; ir: (r: Ruta) => 
       {res?.tipo === 'conflictos' && (
         <>
           <p className={'veredicto veredicto--' + (res.ok ? 'ok' : 'bad')} role="status">
-            <span aria-hidden="true">{res.ok ? '✓' : '✗'}</span>
+            <Icono nombre={res.ok ? 'check' : 'cruz'} tam={18} />
             {res.ok ? 'Correcto.' : `No: la respuesta es "${res.correcto === 'si' ? 'sí, no hay conflictos' : 'no, hay conflictos'}".`}
           </p>
           {!!res.conflictos.length && (
             <div className="casos">
               {res.conflictos.map((c, i) => (
                 <div key={i} className="caso caso--fail">
-                  <span className="caso__ico" aria-hidden="true">✗</span>
+                  <Icono nombre="cruz" tam={13} className="caso__ico" />
                   <span className="caso__s">estado {c.estado}, símbolo {c.simbolo}</span>
                   <span className="caso__exp">{c.clase} · {c.acciones.map(textoAccion).join(' / ')}</span>
                 </div>
@@ -168,6 +169,11 @@ export default function PanelParsing({ id, ir }: { id: string; ir: (r: Ruta) => 
           )}
         </>
       )}
+
+      <TrasResolver
+        ok={res?.tipo !== 'error' && res?.ok === true}
+        tipo="parsing" actual={e.id} lista={PARSING} ir={ir}
+      />
 
       <details style={{ marginTop: 'var(--s5)' }}>
         <summary style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 'var(--fs-base)' }}>

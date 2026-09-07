@@ -7,6 +7,7 @@ import Cabecera from './Cabecera.tsx'
 import Enlace from '../componentes/Enlace.tsx'
 import Pill from '../ui/Pill.tsx'
 import NoEncontrado from './NoEncontrado.tsx'
+import Icono from '../ui/Icono.tsx'
 
 /** 'p3' -> 3 */
 const numero = (id: string): number => Number(id.replace(/\D/g, ''))
@@ -45,7 +46,7 @@ export default function Practicas({ id, ir }: Props) {
                     {tipos.reduce((a, t) => a + (SOLAPAS.find((s) => s.tipo === t)?.total ?? 0), 0)} ejercicios validables
                   </Pill>
                 )}
-                <span aria-hidden="true" style={{ color: 'var(--ink-3)' }}>→</span>
+                <Icono nombre="flecha" tam={15} style={{ color: 'var(--ink-3)' }} />
               </Enlace>
             )
           })}

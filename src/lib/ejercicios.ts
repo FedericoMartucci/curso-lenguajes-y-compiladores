@@ -47,6 +47,19 @@ export const SOLAPAS: Solapa[] = [
     bajada: 'Tu código corre en un simulador del coprocesador 8087 y se comparan los resultados en memoria.' }
 ]
 
+/* El campo `num` de meta.ts hace dos trabajos distintos.
+   En las prácticas 1 y 2 es un identificador real del enunciado de la cátedra: '1a', '4c',
+   '1k · decimal'. En las prácticas 3 a 6, que la cátedra no numera, es un apodo descriptivo
+   ('canónica', 'con paréntesis', 'while con acumulador') que repite lo que ya dice el título.
+
+   La regla: solo es identificador si tiene un dígito. Los apodos no se muestran; el título
+   ya los contiene. Así se evita "solo siguientes · Solo SIGUIENTES de la asignación múltiple". */
+export const esIdentificador = (num: string): boolean => /\d/.test(num)
+
+/** El número a mostrar, o null cuando es un apodo que repetiría el título. */
+export const numeroVisible = (num: string): string | null =>
+  esIdentificador(num) ? num : null
+
 export const solapa = (t: TipoEjercicio): Solapa =>
   SOLAPAS.find((s) => s.tipo === t) ?? (SOLAPAS[0] as Solapa)
 

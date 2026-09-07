@@ -3,7 +3,7 @@ import { CURSO, TIPO_LABEL } from '../lib/curso.ts'
 import { useBanco } from '../lib/contenido.ts'
 import { LECCIONES } from '../lib/curso.ts'
 import type { PreguntaBanco, TipoPregunta } from '../tipos/curso.ts'
-import type { Calificacion } from '../tipos/progreso.ts'
+import type { Calificacion, Tarjeta } from '../tipos/progreso.ts'
 import { useProgreso } from '../lib/progreso.tsx'
 import { vencida, textoProximoRepaso } from '../lib/srs.ts'
 import type { Ruta } from '../lib/router.ts'
@@ -12,6 +12,7 @@ import Enlace from '../componentes/Enlace.tsx'
 import Boton from '../ui/Boton.tsx'
 import Pill from '../ui/Pill.tsx'
 import { Barra } from '../ui/Progreso.tsx'
+import Icono from '../ui/Icono.tsx'
 import { SkeletonTarjeta } from '../ui/Cargando.tsx'
 
 type Modo = 'vencidas' | 'todas' | 'nuevas'
@@ -31,8 +32,15 @@ const mezclar = <T,>(arr: T[]): T[] => {
   return a
 }
 
+interface Deshacer {
+  qid: string
+  /** El estado que tenía la tarjeta antes de calificarla. */
+  previa: Tarjeta | undefined
+  pos: number
+}
+
 export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
-  const { progreso, calificar, tarjeta } = useProgreso()
+  const { progreso, calificar, tarjeta, restaurarTarjeta } = useProgreso()
   const { banco, cargando } = useBanco()
   const [modo, setModo] = useState<Modo>('vencidas')
   const [tipo, setTipo] = useState<TipoPregunta | 'todos'>('todos')
@@ -41,6 +49,7 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
   const [revelada, setRevelada] = useState(false)
   const [semilla, setSemilla] = useState(0)
   const [hechas, setHechas] = useState(0)
+  const [deshacer, setDeshacer] = useState<Deshacer | null>(null)
 
   // "toca hoy" solo trae preguntas de temas ya leídos: es el mismo criterio que el aviso
   // del sidebar y evita tirarle las 417 encima a alguien que recién entra
@@ -70,11 +79,22 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
 
   const responder = useCallback((nota: Calificacion) => {
     if (!actual) return
+    // se guarda el estado previo para poder deshacer: calificar mal por apuro es común
+    setDeshacer({ qid: actual.qid, previa: progreso.preguntas[actual.qid], pos })
     calificar(actual.qid, nota)
     setHechas((n) => n + 1)
     setPos((n) => n + 1)
     setRevelada(false)
-  }, [actual, calificar])
+  }, [actual, calificar, progreso.preguntas, pos])
+
+  const revertir = useCallback(() => {
+    if (!deshacer) return
+    restaurarTarjeta(deshacer.qid, deshacer.previa)
+    setPos(deshacer.pos)
+    setRevelada(true)
+    setHechas((n) => Math.max(0, n - 1))
+    setDeshacer(null)
+  }, [deshacer, restaurarTarjeta])
 
   // Atajos: espacio revela; 1/2/3 califican; s salta.
   useEffect(() => {
@@ -90,10 +110,11 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
         if (e.key === '3' || e.key === ' ') { e.preventDefault(); responder('bien') }
       }
       if (e.key.toLowerCase() === 's') { e.preventDefault(); setPos((n) => n + 1); setRevelada(false) }
+      if (e.key.toLowerCase() === 'z') { e.preventDefault(); revertir() }
     }
     window.addEventListener('keydown', on)
     return () => window.removeEventListener('keydown', on)
-  }, [actual, revelada, responder])
+  }, [actual, revelada, responder, revertir])
 
   const modulos = CURSO.modulos.filter((m) => m.lecciones.some((l) => l.nq > 0))
   const totalVencidas = banco.filter(
@@ -134,7 +155,8 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
         <>
           Respondé de memoria, revelá y calificate honestamente. Cada pregunta vuelve según cuánto te
           costó: lo que fallás reaparece enseguida, lo que sabés se espacia. Con teclado:{' '}
-          <kbd>espacio</kbd> revela, <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> califican.
+          <kbd>espacio</kbd> revela, <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> califican,{' '}
+          <kbd>z</kbd> deshace la última.
         </>
       }
     />
@@ -210,6 +232,12 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
         <div className="drill__barra">
           <Barra valor={pos / mazo.length} etiqueta="Avance de la tanda" />
           <span className="drill__cuenta">{pos + 1} / {mazo.length}</span>
+          {deshacer && (
+            <Boton tamaño="sm" variante="ghost" onClick={revertir} tecla="z">
+              <Icono nombre="deshacer" tam={14} />
+              Deshacer
+            </Boton>
+          )}
         </div>
 
         <article className="tarjeta">
@@ -220,8 +248,9 @@ export default function Ejercitar({ ir }: { ir: (r: Ruta) => void }) {
             <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--ink-3)' }}>
               Módulo {actual.modId} · {actual.lt}
             </span>
-            <Enlace a={{ v: 'leccion', id: actual.lid }} ir={ir} style={{ fontSize: 'var(--fs-xs)', marginLeft: 'auto' }}>
-              ver la lección →
+            <Enlace a={{ v: 'leccion', id: actual.lid }} ir={ir} className="enlace-flecha"
+                    style={{ fontSize: 'var(--fs-xs)', marginLeft: 'auto' }}>
+              ver la lección<Icono nombre="flecha" tam={13} />
             </Enlace>
           </div>
 

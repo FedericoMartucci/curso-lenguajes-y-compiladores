@@ -6,6 +6,7 @@ import Enlace from '../componentes/Enlace.tsx'
 import Campo from '../ui/Campo.tsx'
 import Pill from '../ui/Pill.tsx'
 import NoEncontrado from './NoEncontrado.tsx'
+import Icono from '../ui/Icono.tsx'
 
 interface Props { id?: string; ir: (r: Ruta) => void }
 
@@ -24,7 +25,7 @@ export default function Clases({ id, ir }: Props) {
                 <span className="mat__t">{t.titulo}</span>
                 <span className="mat__sub">{t.tag} · {t.parrafos.length} párrafos</span>
               </span>
-              <span aria-hidden="true" style={{ color: 'var(--ink-3)' }}>→</span>
+              <Icono nombre="flecha" tam={15} style={{ color: 'var(--ink-3)' }} />
             </Enlace>
           ))}
         </div>

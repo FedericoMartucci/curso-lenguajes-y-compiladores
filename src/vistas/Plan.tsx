@@ -8,6 +8,7 @@ import Enlace from '../componentes/Enlace.tsx'
 import Boton from '../ui/Boton.tsx'
 import Pill from '../ui/Pill.tsx'
 import { Barra } from '../ui/Progreso.tsx'
+import Icono from '../ui/Icono.tsx'
 
 const ETIQUETA_CLASE: Record<string, string> = {
   teoria: 'clase con teoría',
@@ -57,7 +58,7 @@ export default function Plan({ ir }: { ir: (r: Ruta) => void }) {
       />
 
       <div className="honestidad" style={{ marginBottom: 'var(--s6)' }}>
-        <span aria-hidden="true">↔</span>
+        <Icono nombre="calendario" tam={16} />
         <p>
           <b>El plan sugiere, nunca bloquea.</b> Todas las lecciones y todos los ejercicios están
           siempre abiertos: si el profe nombra algo de la semana 12 en la semana 4, entrás igual.
@@ -126,7 +127,7 @@ export default function Plan({ ir }: { ir: (r: Ruta) => void }) {
                           <span className="meta-item__cuerpo">
                             <span className="meta-item__t">{l.titulo}</span>
                           </span>
-                          {leida(l.id) && <span style={{ color: 'var(--ok)' }} aria-label="leída">✓</span>}
+                          {leida(l.id) && <Icono nombre="check" tam={13} titulo="leída" style={{ color: 'var(--ok)' }} />}
                         </Enlace>
                       ))}
                     </div>

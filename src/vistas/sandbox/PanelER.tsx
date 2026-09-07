@@ -4,11 +4,12 @@ import { testER, buildRegex, parseConjuntos } from '../../engines/regex.ts'
 import { useProgreso } from '../../lib/progreso.tsx'
 import type { ResultadoCasos, CasoCorrido } from '../../tipos/motores.ts'
 import type { Ruta } from '../../lib/router.ts'
-import { EncabezadoEjercicio, useBorrador } from './marco.tsx'
+import { EncabezadoEjercicio, TrasResolver, useBorrador } from './marco.tsx'
 import { Casos } from '../../componentes/Casos.tsx'
 import Teclado from '../../componentes/Teclado.tsx'
 import Campo from '../../ui/Campo.tsx'
 import Boton from '../../ui/Boton.tsx'
+import Icono from '../../ui/Icono.tsx'
 
 export default function PanelER({ id, ir }: { id: string; ir: (r: Ruta) => void }) {
   const e = ER.find((x) => x.id === id) ?? (ER[0] as typeof ER[number])
@@ -90,13 +91,15 @@ export default function PanelER({ id, ir }: { id: string; ir: (r: Ruta) => void 
 
       <Casos resultado={res} extra={extra} />
 
+      <TrasResolver ok={res?.ok === true} tipo="er" actual={e.id} lista={ER} ir={ir} />
+
       <details style={{ marginTop: 'var(--s5)' }}>
         <summary style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 'var(--fs-base)' }}>
           Ver una respuesta modelo
         </summary>
         <pre style={{ marginTop: 'var(--s3)' }}>{'CONJUNTO\n' + (e.cj || '(ninguno)') + '\n\nTOKEN     EXP. REG.\n' + e.m}</pre>
         <div className="honestidad">
-          <span aria-hidden="true">≡</span>
+          <Icono nombre="libro" tam={16} />
           <p>
             <b>Puede haber varias correctas.</b> Lo que se valida es qué cadenas acepta y cuáles rechaza,
             no que tu expresión sea igual a esta.

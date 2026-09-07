@@ -291,10 +291,11 @@
 .sb__ej[aria-current='page'] { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
 .sb__ej__num {
   font-family: var(--mono); font-size: 11px; color: var(--ink-3);
-  flex: 0 0 34px; text-align: left;
+  flex: 0 0 46px; max-width: 46px; text-align: left;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.sb__ej__pref { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
-.sb__ej[aria-current='page'] .sb__ej__pref { color: var(--accent); }
+/* Sin número, el título ocupa la columna entera en vez de dejar una sangría vacía. */
+.sb__ej--sin-num { padding-left: var(--s2); }
 .sb__ej[aria-current='page'] .sb__ej__num { color: var(--accent); }
 .sb__ej__t { flex: 1; padding: 3px 0; }
 .sb__ej__tick { color: var(--ok); font-size: 11px; }
@@ -433,3 +434,26 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .cuenta__mail { font-size: var(--fs-xs); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ===================== Cierre de una lección y de un ejercicio =====================
+   El paso siguiente del flujo, ofrecido donde el ojo termina, no en la otra punta. */
+.cierre-leccion, .tras-resolver {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s4); flex-wrap: wrap;
+  margin-top: var(--s6);
+  padding: var(--s4);
+  background: var(--sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+}
+.tras-resolver { background: var(--ok-bg); border-color: transparent; margin-top: var(--s4); }
+.cierre-leccion__cuerpo, .tras-resolver > div:first-child { min-width: 0; }
+.cierre-leccion__t, .tras-resolver__t {
+  font-size: var(--fs-md); font-weight: 600; color: var(--ink);
+}
+.tras-resolver__t { color: var(--ok); }
+.cierre-leccion__sub, .tras-resolver__sub {
+  font-size: var(--fs-sm); color: var(--ink-2); margin-top: 2px; line-height: 1.45;
+}
+.tras-resolver__sub { color: var(--ok); opacity: 0.85; }
+.tras-resolver p:only-child { font-size: var(--fs-md); font-weight: 500; color: var(--ok); }

@@ -4,7 +4,7 @@ import { testGLC, parseGrammar, earleyAccepts, tokenize } from '../../engines/ea
 import { useProgreso } from '../../lib/progreso.tsx'
 import type { ResultadoCasos, CasoCorrido } from '../../tipos/motores.ts'
 import type { Ruta } from '../../lib/router.ts'
-import { EncabezadoEjercicio, useBorrador } from './marco.tsx'
+import { EncabezadoEjercicio, TrasResolver, useBorrador } from './marco.tsx'
 import { Casos } from '../../componentes/Casos.tsx'
 import Teclado from '../../componentes/Teclado.tsx'
 import Campo from '../../ui/Campo.tsx'
@@ -96,6 +96,8 @@ export default function PanelGLC({ id, ir }: { id: string; ir: (r: Ruta) => void
       </div>
 
       <Casos resultado={res} extra={extra} />
+
+      <TrasResolver ok={res?.ok === true} tipo="glc" actual={e.id} lista={GLC} ir={ir} />
 
       <details style={{ marginTop: 'var(--s5)' }}>
         <summary style={{ cursor: 'pointer', color: 'var(--accent)', fontSize: 'var(--fs-base)' }}>
