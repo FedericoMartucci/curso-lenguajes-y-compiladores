@@ -1,6 +1,9 @@
-/* build.js — genera src/data/curso.js a partir de los módulos en content/.
+/* build.js — genera src/data/curso.ts a partir de los módulos en content/.
    content/mod-*.js es la ÚNICA fuente de verdad: cada archivo hace M.push({...})
    con un módulo completo (id, titulo, parcial, resumen, lecciones).
+   Sigue siendo JS a propósito: los módulos de contenido se ejecutan en un vm de Node y son
+   literales de HTML, así que compilarlos antes no agregaría seguridad de tipos real.
+   El archivo que emite SÍ es TypeScript y tiene que cumplir el tipo `Curso`.
    Uso:  npm run data   (o  node build.js). `npm run build` lo corre antes de vite build. */
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
@@ -38,9 +41,12 @@ mods.forEach((m) => {
 
 mkdirSync(join(dir, 'src', 'data'), { recursive: true })
 writeFileSync(
-  join(dir, 'src', 'data', 'curso.js'),
-  '/* GENERADO por build.js a partir de content/. No editar a mano. */\nexport const CURSO = ' +
-    JSON.stringify({ modulos: mods }) + '\n'
+  join(dir, 'src', 'data', 'curso.ts'),
+  '/* GENERADO por build.js a partir de content/. No editar a mano: se edita content/mod-*.js\n' +
+  '   y se corre `npm run data`. Está commiteado a propósito para que el deploy no dependa\n' +
+  '   de un paso extra. */\n' +
+  "import type { Curso } from '../tipos/curso.ts'\n\n" +
+  'export const CURSO: Curso = ' + JSON.stringify({ modulos: mods }) + '\n'
 )
 
 mods.forEach((m) => {
@@ -51,4 +57,4 @@ mods.forEach((m) => {
 console.log('---')
 console.log('Módulos: ' + mods.length + ' | Lecciones: ' + total + ' (' + dic + ' en profundidad) | Preguntas: ' + qa)
 if (problems.length) { console.log('PROBLEMAS:\n- ' + problems.join('\n- ')); process.exit(1) }
-console.log('OK — src/data/curso.js generado')
+console.log('OK — src/data/curso.ts generado')

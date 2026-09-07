@@ -1,0 +1,141 @@
+/* Tokens del sistema. Único lugar donde se definen colores, tipografía, espaciado y motion.
+   Ningún componente escribe un color literal.
+
+   Sobre el formato: la paleta va en hexadecimal y no en OKLCH a propósito. No se genera
+   ninguna rampa: el crema y el azul vienen del proyecto original (son la identidad) y cada
+   valor está medido contra cada superficie donde se usa. Los números al lado de cada token
+   de texto son ese contraste real, el peor caso de los seis fondos posibles. */
+
+:root {
+  /* ---------- superficies (tema claro) ---------- */
+  --canvas:          #faf9f5;   /* fondo de página: el crema del proyecto */
+  --surface:         #ffffff;   /* tarjetas, paneles, campos */
+  --sunken:          #f1efe8;   /* sidebar, bloques de código, encabezados de tabla */
+  --hairline:        #e6e5e3;   /* separaciones */
+  --hairline-strong: #cecdc9;   /* bordes de controles */
+  --overlay:         rgb(26 26 24 / 38%);
+
+  /* ---------- texto ---------- */
+  --ink:    #1a1a18;   /* 15.1:1 peor caso */
+  --ink-2:  #5f5e5a;   /*  5.6:1 */
+  --ink-3:  #6d6b62;   /*  4.6:1  ← el gris más claro que puede llevar texto */
+
+  /* ---------- acento y semántica ---------- */
+  --accent:      #2c5aa0;
+  --accent-bg:   #e6f0fb;
+  --accent-ink:  #ffffff;   /* texto sobre --accent */
+  --ok:      #3b6d11;  --ok-bg:   #eaf3de;
+  --bad:     #a32d2d;  --bad-bg:  #fcebeb;
+  --warn:    #7d4a09;  --warn-bg: #f8efdf;
+  --purple:  #4f47ad;
+
+  /* ---------- tipografía ---------- */
+  --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --fs-xs:   0.75rem;    /* 12 — badges, meta, numeración */
+  --fs-sm:   0.8125rem;  /* 13 — notación en línea, celdas, hints */
+  --fs-base: 0.875rem;   /* 14 — interfaz */
+  --fs-md:   0.9375rem;  /* 15 — cuerpo de tarjeta, consignas */
+  --fs-lg:   1.0625rem;  /* 17 — prosa de las lecciones */
+  --fs-xl:   1.25rem;    /* 20 — h3 */
+  --fs-2xl:  1.5rem;     /* 24 — h2 */
+  --fs-3xl:  1.875rem;   /* 30 — título de página */
+
+  --lh-tight: 1.25;
+  --lh-ui:    1.5;
+  --lh-read:  1.75;
+
+  --measure-read: 68ch;
+  --measure-ui:   75ch;
+
+  /* ---------- espaciado ---------- */
+  --s1:  4px;  --s2:  8px;  --s3: 12px;  --s4: 16px;
+  --s5: 24px;  --s6: 32px;  --s7: 48px;  --s8: 64px;
+
+  /* ---------- forma ---------- */
+  --r-sm: 6px;  --r-md: 10px;  --r-lg: 14px;  --r-full: 999px;
+
+  /* solo para capas que flotan de verdad */
+  --shadow-pop:   0 4px 16px -4px rgb(26 26 24 / 14%), 0 1px 3px rgb(26 26 24 / 8%);
+  --shadow-modal: 0 24px 60px -12px rgb(26 26 24 / 26%), 0 4px 12px rgb(26 26 24 / 10%);
+
+  /* ---------- capas ---------- */
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-drawer:   300;
+  --z-backdrop: 400;
+  --z-modal:    500;
+  --z-toast:    600;
+  --z-tooltip:  700;
+
+  /* ---------- movimiento ---------- */
+  --dur-fast: 120ms;
+  --dur:      180ms;
+  --dur-slow: 240ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);   /* ease-out-quart: sin rebote */
+
+  /* ---------- medidas del shell ---------- */
+  --sidebar: 288px;
+  --topbar:  52px;
+
+  color-scheme: light;
+}
+
+/* El oscuro es una paleta propia, no una inversión: se leen 110 lecciones de noche.
+   Los fondos bajan de luminancia respecto del tema claro para dejarle aire a --ink-3. */
+
+html[data-theme='dark'] {
+  --canvas:          #191917;
+  --surface:         #292927;
+  --sunken:          #212120;
+  --hairline:        #33332f;
+  --hairline-strong: #4a4a45;
+  --overlay:         rgb(0 0 0 / 55%);
+
+  --ink:    #ecebe6;   /* 11.7:1 peor caso */
+  --ink-2:  #adaca5;   /*  6.1:1 */
+  --ink-3:  #93918a;   /*  4.6:1 */
+
+  --accent:     #9db8e8;
+  --accent-bg:  #1c2740;
+  --accent-ink: #14203a;
+  --ok:     #9ec964;  --ok-bg:   #1e2e16;
+  --bad:    #f19a9a;  --bad-bg:  #331c1c;
+  --warn:   #efa42f;  --warn-bg: #33260f;
+  --purple: #b3adee;
+
+  --shadow-pop:   0 4px 16px -4px rgb(0 0 0 / 50%), 0 1px 3px rgb(0 0 0 / 40%);
+  --shadow-modal: 0 24px 60px -12px rgb(0 0 0 / 62%), 0 4px 12px rgb(0 0 0 / 44%);
+
+  color-scheme: dark;
+}
+
+/* Sin elección explícita manda el sistema. Solo redefine tokens: nunca los estrena. */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme='light']) {
+    --canvas:          #191917;
+    --surface:         #292927;
+    --sunken:          #212120;
+    --hairline:        #33332f;
+    --hairline-strong: #4a4a45;
+    --overlay:         rgb(0 0 0 / 55%);
+
+    --ink:    #ecebe6;
+    --ink-2:  #adaca5;
+    --ink-3:  #93918a;
+
+    --accent:     #9db8e8;
+    --accent-bg:  #1c2740;
+    --accent-ink: #14203a;
+    --ok:     #9ec964;  --ok-bg:   #1e2e16;
+    --bad:    #f19a9a;  --bad-bg:  #331c1c;
+    --warn:   #efa42f;  --warn-bg: #33260f;
+    --purple: #b3adee;
+
+    --shadow-pop:   0 4px 16px -4px rgb(0 0 0 / 50%), 0 1px 3px rgb(0 0 0 / 40%);
+    --shadow-modal: 0 24px 60px -12px rgb(0 0 0 / 62%), 0 4px 12px rgb(0 0 0 / 44%);
+
+    color-scheme: dark;
+  }
+}

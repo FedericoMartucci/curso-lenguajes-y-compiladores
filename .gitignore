@@ -16,3 +16,7 @@ Thumbs.db
 
 # Vercel
 .vercel
+
+# capturas de la revisión visual
+.playwright-mcp/
+*.png

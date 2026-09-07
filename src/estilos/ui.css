@@ -1,0 +1,266 @@
+/* Primitivas. Vocabulario único: si el botón de validar se ve distinto en dos pantallas,
+   una de las dos está mal. */
+
+/* ============ Botón ============ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out),
+              color var(--dur) var(--ease-out);
+}
+.btn--md { padding: 0 var(--s4); height: 36px; }
+.btn--sm { padding: 0 var(--s3); height: 28px; font-size: var(--fs-sm); }
+
+.btn--primary {
+  background: var(--accent); color: var(--accent-ink); border-color: var(--accent);
+}
+.btn--primary:hover:not(:disabled) { filter: brightness(1.08); }
+.btn--primary:active:not(:disabled) { filter: brightness(0.94); }
+
+.btn--secondary {
+  background: var(--surface); color: var(--ink); border-color: var(--hairline-strong);
+}
+.btn--secondary:hover:not(:disabled) { background: var(--sunken); border-color: var(--ink-3); }
+.btn--secondary:active:not(:disabled) { background: var(--hairline); }
+
+.btn--ghost { background: transparent; color: var(--ink-2); }
+.btn--ghost:hover:not(:disabled) { background: var(--sunken); color: var(--ink); }
+
+.btn--danger { background: transparent; color: var(--bad); border-color: var(--bad); }
+.btn--danger:hover:not(:disabled) { background: var(--bad-bg); }
+
+.btn:disabled { opacity: 0.45; }
+.btn[data-cargando='true'] { pointer-events: none; }
+
+.btn__spinner {
+  width: 13px; height: 13px; flex: 0 0 auto;
+  border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%;
+  animation: girar 0.6s linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+
+/* La tecla que dispara la acción, dentro del propio botón. */
+.btn__tecla {
+  font-family: var(--mono); font-size: 11px; opacity: 0.7;
+  border: 1px solid currentColor; border-radius: 4px; padding: 1px 4px; line-height: 1;
+}
+
+/* ============ Pill / badge ============ */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--fs-xs); font-weight: 500; line-height: 1.6;
+  padding: 1px var(--s2);
+  border: 1px solid transparent;
+  border-radius: var(--r-full);
+  white-space: nowrap;
+}
+.pill--neutra  { background: var(--sunken); color: var(--ink-2); border-color: var(--hairline); }
+.pill--acento  { background: var(--accent-bg); color: var(--accent); }
+.pill--ok      { background: var(--ok-bg); color: var(--ok); }
+.pill--aviso   { background: var(--warn-bg); color: var(--warn); }
+.pill--aho     { background: transparent; color: var(--purple); border-color: var(--purple); }
+.pill--mono    { font-family: var(--mono); font-size: 11px; }
+/* Marca compacta: solo el símbolo, sin la cápsula. Para cuando el contexto ya da el significado. */
+.marca-tema { font-size: var(--fs-sm); line-height: 1; flex: 0 0 auto; }
+
+/* ============ Campo ============ */
+.campo { display: block; }
+.campo__label {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3);
+  font-size: var(--fs-xs); font-weight: 500; color: var(--ink-2);
+  margin-bottom: var(--s1);
+}
+.campo__label em { font-style: normal; font-weight: 400; color: var(--ink-3); }
+.campo__pie { font-size: var(--fs-xs); color: var(--ink-3); margin-top: var(--s1); line-height: 1.5; }
+.campo__pie--error { color: var(--bad); font-weight: 500; }
+
+.control {
+  width: 100%;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm);
+  padding: var(--s2) var(--s3);
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  transition: border-color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out);
+}
+.control:hover:not(:disabled):not(:focus) { border-color: var(--ink-3); }
+.control:disabled { background: var(--sunken); color: var(--ink-3); }
+.control[aria-invalid='true'] { border-color: var(--bad); }
+textarea.control { resize: vertical; min-height: 72px; }
+select.control { font-family: var(--sans); height: 36px; padding: 0 var(--s3); cursor: pointer; }
+input.control { height: 36px; }
+.control--sans { font-family: var(--sans); }
+
+/* ============ Panel ============ */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: var(--s5);
+}
+.panel--plano { background: var(--sunken); border-color: transparent; }
+.panel__titulo {
+  font-size: var(--fs-md); font-weight: 600; color: var(--ink);
+  letter-spacing: -0.008em;
+  margin-bottom: var(--s2);
+}
+
+/* ============ Progreso ============ */
+.barra {
+  height: 6px; border-radius: var(--r-full);
+  background: var(--hairline);
+  overflow: hidden;
+}
+.barra > i {
+  display: block; height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: width var(--dur-slow) var(--ease-out);
+}
+.barra--ok > i { background: var(--ok); }
+.barra--alta { height: 10px; }
+
+.anillo { display: block; transform: rotate(-90deg); }
+.anillo circle { fill: none; stroke-linecap: round; }
+.anillo .pista { stroke: var(--hairline); }
+.anillo .avance { stroke: var(--accent); transition: stroke-dashoffset var(--dur-slow) var(--ease-out); }
+
+/* ============ Estado vacío ============ */
+.vacio {
+  text-align: center;
+  padding: var(--s7) var(--s5);
+  border: 1px dashed var(--hairline-strong);
+  border-radius: var(--r-md);
+  color: var(--ink-2);
+}
+.vacio h3 { font-size: var(--fs-md); margin-bottom: var(--s2); color: var(--ink); }
+.vacio p { font-size: var(--fs-base); max-width: 46ch; margin: 0 auto var(--s4); line-height: 1.6; }
+
+/* ============ Skeleton ============ */
+.skel {
+  background: linear-gradient(90deg, var(--sunken) 25%, var(--hairline) 37%, var(--sunken) 63%);
+  background-size: 400% 100%;
+  animation: brillo 1.4s ease-in-out infinite;
+  border-radius: var(--r-sm);
+}
+@keyframes brillo { from { background-position: 100% 50%; } to { background-position: 0 50%; } }
+@media (prefers-reduced-motion: reduce) { .skel { animation: none; background: var(--sunken); } }
+
+/* ============ Segmentado (tabs) ============ */
+.segmentado {
+  display: inline-flex; gap: 2px; padding: 2px;
+  background: var(--sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+}
+.segmentado button {
+  border: 0; background: transparent; color: var(--ink-2);
+  font-size: var(--fs-sm); font-weight: 500;
+  padding: 0 var(--s3); height: 28px;
+  border-radius: 4px;
+  transition: background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+}
+.segmentado button:hover { color: var(--ink); }
+.segmentado button[aria-pressed='true'] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 6%); }
+
+/* ============ Chips de filtro ============ */
+.chip {
+  border: 1px solid var(--hairline-strong);
+  background: transparent; color: var(--ink-2);
+  font-size: var(--fs-sm); font-weight: 500;
+  padding: 0 var(--s3); height: 28px;
+  border-radius: var(--r-full);
+  transition: background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out);
+}
+.chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.chip[aria-pressed='true'] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+/* ============ Diálogo ============ */
+dialog.dlg {
+  padding: 0; border: 0; background: transparent;
+  max-width: min(640px, calc(100vw - var(--s5) * 2));
+  width: 100%;
+}
+dialog.dlg::backdrop { background: var(--overlay); backdrop-filter: blur(2px); }
+.dlg__caja {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+dialog.dlg[open] { animation: dlg-entra var(--dur) var(--ease-out); }
+@keyframes dlg-entra { from { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) {
+  dialog.dlg[open] { animation: none; }
+}
+
+/* ============ Tecla ============ */
+kbd {
+  display: inline-block;
+  font-family: var(--mono); font-size: 11px; line-height: 1.4;
+  color: var(--ink-2);
+  background: var(--sunken);
+  border: 1px solid var(--hairline-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
+/* ============ Paleta de comandos ============ */
+.paleta__campo {
+  display: flex; align-items: center; gap: var(--s3);
+  padding: var(--s4);
+  border-bottom: 1px solid var(--hairline);
+}
+.paleta__campo input {
+  flex: 1; border: 0; background: none; outline: none;
+  font-family: var(--sans); font-size: var(--fs-lg); color: var(--ink);
+}
+.paleta__lupa { color: var(--ink-3); font-size: var(--fs-lg); }
+
+.paleta__lista { max-height: min(420px, 60dvh); overflow-y: auto; padding: var(--s2); }
+.paleta__seccion {
+  font-size: var(--fs-xs); font-weight: 600; color: var(--ink-3);
+  letter-spacing: 0.03em; text-transform: uppercase;
+  padding: var(--s3) var(--s3) var(--s1);
+}
+.paleta__item {
+  display: flex; align-items: center; gap: var(--s3);
+  width: 100%; padding: var(--s2) var(--s3);
+  border: 0; background: none; border-radius: var(--r-sm);
+  text-align: left; color: var(--ink);
+}
+.paleta__item[data-sel='true'] { background: var(--accent-bg); }
+.paleta__item[data-sel='true'] .paleta__item__sub { color: var(--accent); }
+.paleta__item__icono {
+  flex: 0 0 22px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-align: center;
+}
+.paleta__item__cuerpo { flex: 1; min-width: 0; }
+.paleta__item__titulo {
+  font-size: var(--fs-base); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.paleta__item__sub {
+  font-size: var(--fs-xs); color: var(--ink-3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.paleta__pie {
+  display: flex; align-items: center; gap: var(--s4);
+  padding: var(--s2) var(--s4);
+  border-top: 1px solid var(--hairline);
+  background: var(--sunken);
+  font-size: var(--fs-xs); color: var(--ink-3);
+}
+.paleta__pie span { display: inline-flex; align-items: center; gap: 4px; }
