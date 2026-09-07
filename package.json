@@ -1,12 +1,33 @@
 {
   "name": "curso-lenguajes-y-compiladores",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Curso interactivo de Lenguajes y Compiladores (UNLaM) — 106 lecciones en profundidad sobre Aho, ejercitación y mesa de trabajo. Sitio estático, offline-first.",
+  "type": "module",
+  "description": "Curso interactivo de Lenguajes y Compiladores (UNLaM) — teoría, ejercitación y sandbox validable. React + Vite, sin backend.",
   "scripts": {
-    "build": "node build.js",
-    "dev": "npx --yes serve@14 ."
+    "dev": "vite",
+    "build": "node build.js && vite build",
+    "preview": "vite preview",
+    "data": "node build.js",
+    "test": "node tests/run.js",
+    "smoke": "node tests/_bundle.mjs && node tests/.smoke.bundle.mjs",
+    "check": "npm run test && npm run smoke"
   },
-  "keywords": ["compiladores", "unlam", "aho", "lenguajes", "curso", "estatico"],
-  "license": "MIT"
+  "keywords": [
+    "compiladores",
+    "unlam",
+    "aho",
+    "lenguajes",
+    "curso",
+    "react"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11"
+  }
 }

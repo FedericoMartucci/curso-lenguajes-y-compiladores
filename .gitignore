@@ -1,7 +1,13 @@
 # dependencias
 node_modules/
 
-# artefactos del SO / editor
+# build
+dist/
+
+# artefactos de test
+tests/.smoke.bundle.mjs
+
+# sistema / editor
 .DS_Store
 Thumbs.db
 *.log
@@ -10,6 +16,3 @@ Thumbs.db
 
 # Vercel
 .vercel
-
-# archivo legacy de contenido (no es fuente de verdad)
-data.resumen-backup.js
