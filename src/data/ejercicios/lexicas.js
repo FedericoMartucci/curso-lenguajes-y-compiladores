@@ -131,5 +131,39 @@ export const LEX_EJ = [
       { v: '"' + rep('x', 31) + '"', ok: false, por: 'cota' },
       { v: 'hola', ok: false, por: 'ER' }, { v: '"abc', ok: false, por: 'ER' }
     ]
+  },
+  {
+    id: 'ex-id-guiones2', t: 'Identificador con máximo 2 guiones medios', fuente: 'Extra · variante de la Práctica 1', nivel: 'medio',
+    c: 'Identificador que empieza con letra y sigue con letras, dígitos o guiones medios, con un máximo de 2 guiones en todo el identificador.',
+    cj: 'LETRA   [a-zA-Z]\nDIGITO  [0-9]', mER: '{LETRA}({LETRA}|{DIGITO}|"-")*',
+    atr: 'cant_guiones', op: '<=', cota: 2,
+    tests: [
+      { v: 'contador', ok: true }, { v: 'a-b', ok: true },
+      { v: 'a-b-c', ok: true, nota: 'exactamente 2' },
+      { v: 'a-b-c-d', ok: false, por: 'cota', nota: '3 guiones' },
+      { v: '1abc', ok: false, por: 'ER' }, { v: '-abc', ok: false, por: 'ER' }
+    ]
+  },
+  {
+    id: 'ex-octal-cota', t: 'Constante octal con cota', fuente: 'Extra · Práctica 1 Ej. 1k', nivel: 'difícil',
+    c: 'Constante octal estilo C (empieza con 0 y sigue con dígitos del 0 al 7). El valor, interpretado en decimal tal como está escrito, no puede superar 777.',
+    cj: 'OCTAL  [0-7]', mER: '"0"{OCTAL}+', atr: 'valor', op: '<=', cota: 777,
+    tests: [
+      { v: '024', ok: true }, { v: '0777', ok: true, nota: 'cota exacta' },
+      { v: '01000', ok: false, por: 'cota' },
+      { v: '08', ok: false, por: 'ER', nota: 'el 8 no es octal' },
+      { v: '24', ok: false, por: 'ER', nota: 'no empieza con 0' }
+    ]
+  },
+  {
+    id: 'ex-comentario-len', t: 'Comentario con longitud máxima', fuente: 'Extra · errores léxicos', nivel: 'medio',
+    c: 'Comentario acotado por /* y */ con letras adentro, que no puede superar los 20 caracteres en total (incluidos los delimitadores).',
+    cj: 'LETRA  [a-zA-Z]', mER: '"/*"{LETRA}*"*/"', atr: 'longitud', op: '<=', cota: 20,
+    tests: [
+      { v: '/**/', ok: true }, { v: '/*hola*/', ok: true },
+      { v: '/*' + rep('a', 16) + '*/', ok: true, nota: '20 caracteres justos' },
+      { v: '/*' + rep('a', 17) + '*/', ok: false, por: 'cota' },
+      { v: '/*hola', ok: false, por: 'ER', nota: 'comentario sin cerrar' }
+    ]
   }
 ]

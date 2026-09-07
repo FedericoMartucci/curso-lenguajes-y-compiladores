@@ -176,5 +176,41 @@ export const GLC_EJ = [
       'when ( id ) { is id { id := cte ; } }',
       'when ( id ) { in cte cte { id := cte ; } }'
     ]
+  },
+  {
+    id: 'ex-listas-anid', t: 'Listas anidadas entre paréntesis', fuente: 'Parcial 1C 2016 · Ej. 2', nivel: 'difícil',
+    c: 'Cada línea puede tener un solo nodo o una sola lista. Un nodo es NUM o SYM. Una lista va entre paréntesis, puede estar vacía y puede contener cualquier cantidad de nodos o de listas adentro.',
+    m: 'PROG -> PROG LINEA | LINEA\nLINEA -> NODO | LISTA\nLISTA -> ( ELEM ) | ( )\nELEM -> ELEM LINEA | LINEA\nNODO -> NUM | SYM',
+    ac: ['NUM', '( NUM SYM )', '( )', '( SYM ( ) NUM ( NUM SYM ) )', '( ( NUM ) ( SYM NUM ( ) ) )'],
+    rc: ['', '(', ')', '( NUM', 'NUM )', '( ( NUM )']
+  },
+  {
+    id: 'ex-booleanas', t: 'Expresiones booleanas con precedencia', fuente: 'Extra · temas comunes', nivel: 'medio',
+    c: 'Condiciones con AND, OR y NOT, donde NOT liga más fuerte que AND y AND más que OR. Los operandos son comparaciones entre id y cte.',
+    nota: 'El validador comprueba el lenguaje. La precedencia entre AND, OR y NOT se verifica mirando los niveles de tus reglas contra el modelo.',
+    m: 'B -> B OR C | C\nC -> C AND D | D\nD -> NOT D | ( B ) | R\nR -> id < cte | id > cte | id == cte',
+    ac: ['id < cte', 'id < cte AND id > cte', 'NOT id == cte', 'id < cte OR id > cte AND id == cte', '( id < cte OR id > cte ) AND NOT id == cte'],
+    rc: ['', 'AND id < cte', 'id < cte AND', 'NOT', 'id cte', '( id < cte']
+  },
+  {
+    id: 'ex-bloque', t: 'Bloque begin … end', fuente: 'Extra · temas comunes', nivel: 'medio',
+    c: 'Un bloque delimitado por begin y end que contiene una o más sentencias, cada una terminada en ";". Una sentencia es una asignación o un bloque anidado.',
+    m: 'B -> begin S end\nS -> S T | T\nT -> id := E ; | B\nE -> E + F | F\nF -> id | cte',
+    ac: ['begin id := cte ; end', 'begin id := cte ; id := id + cte ; end', 'begin begin id := cte ; end end'],
+    rc: ['', 'begin end', 'begin id := cte ; ', 'id := cte ;', 'begin id := cte end']
+  },
+  {
+    id: 'ex-llamada', t: 'Llamada a función con parámetros', fuente: 'Extra · estilo parcial', nivel: 'medio',
+    c: 'Una llamada con el formato id ( lista ) donde la lista de parámetros puede estar vacía o tener una o más expresiones separadas por comas.',
+    m: 'L -> id ( P )\nP -> LP | ε\nLP -> LP , E | E\nE -> E + T | T\nT -> id | cte',
+    ac: ['id ( )', 'id ( id )', 'id ( id , cte )', 'id ( id + cte , cte , id )'],
+    rc: ['', 'id ( , id )', 'id ( id , )', 'id id', 'id (', '( id )']
+  },
+  {
+    id: 'ex-readwrite', t: 'Sentencias READ y WRITE', fuente: 'Práctica 1 · Ej. 4h y 5', nivel: 'básico',
+    c: 'Un programa con una o más sentencias, cada una terminada en ";". Las sentencias pueden ser: una asignación, un READ de una variable, o un WRITE de una variable o de una cadena.',
+    m: 'P -> P S | S\nS -> id := E ; | READ id ; | WRITE id ; | WRITE cadena ;\nE -> E + T | T\nT -> id | cte',
+    ac: ['READ id ;', 'WRITE cadena ;', 'WRITE id ;', 'READ id ; id := id + cte ; WRITE id ;'],
+    rc: ['', 'READ ;', 'WRITE ;', 'READ id', 'READ cadena ;', 'id := ;']
   }
 ]

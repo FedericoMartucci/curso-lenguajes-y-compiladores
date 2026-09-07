@@ -4,6 +4,10 @@
 
 const P1 = 'Práctica 1'
 const P2 = 'Práctica 2'
+const P3 = 'Práctica 3'
+const P4 = 'Práctica 4'
+const P5 = 'Práctica 5'
+const P6 = 'Práctica 6'
 const L1 = 'Tu lenguaje (L1_aho)'
 const TC = 'Temas comunes'
 const EX = 'Parciales y extras'
@@ -35,7 +39,13 @@ export const META = {
     'ex-ceros-unos': { grupo: EX, num: 'Apunte 2', orden: 430 },
     'ex-hora': { grupo: EX, num: 'Extra 1', orden: 440 },
     'ex-fecha': { grupo: EX, num: 'Extra 2', orden: 450 },
-    'ex-real-exp': { grupo: EX, num: 'Extra 3', orden: 460 }
+    'ex-real-exp': { grupo: EX, num: 'Extra 3', orden: 460 },
+    'ex-id-c': { grupo: EX, num: 'Extra 4', orden: 470 },
+    'ex-telefono': { grupo: EX, num: 'Extra 5', orden: 480 },
+    'ex-dni': { grupo: EX, num: 'Extra 6', orden: 490 },
+    'ex-binaria': { grupo: EX, num: 'Extra 7', orden: 500 },
+    'ex-asig-comp': { grupo: EX, num: 'Extra 8', orden: 510 },
+    'ex-com-linea': { grupo: EX, num: 'Extra 9', orden: 520 }
   },
   lex: {
     'p1-1a-len': { grupo: P1, num: '1a · por longitud', orden: 110 },
@@ -47,7 +57,10 @@ export const META = {
     'l1-float': { grupo: L1, num: 'cota de Float', orden: 220 },
     'l1-str50': { grupo: L1, num: 'longitud de String', orden: 230 },
     'ex-coord-len': { grupo: EX, num: 'Parcial 2C24', orden: 310 },
-    'ex-id-len': { grupo: EX, num: 'Extra 1', orden: 320 }
+    'ex-id-len': { grupo: EX, num: 'Extra 1', orden: 320 },
+    'ex-id-guiones2': { grupo: EX, num: 'Extra 2', orden: 330 },
+    'ex-octal-cota': { grupo: EX, num: 'Extra 3', orden: 340 },
+    'ex-comentario-len': { grupo: EX, num: 'Extra 4', orden: 350 }
   },
   glc: {
     'p2-1': { grupo: P2, num: '1', orden: 110 },
@@ -63,10 +76,52 @@ export const META = {
     'ex-while': { grupo: TC, num: 'while', orden: 330 },
     'ex-decvar': { grupo: TC, num: 'DECVAR', orden: 340 },
     'l1-when': { grupo: L1, num: 'TE1 · matchPatterns', orden: 410 },
+    'ex-bloque': { grupo: TC, num: 'begin / end', orden: 350 },
+    'ex-llamada': { grupo: TC, num: 'llamada a función', orden: 360 },
+    'ex-readwrite': { grupo: TC, num: 'READ y WRITE', orden: 370 },
+    'ex-booleanas': { grupo: TC, num: 'booleanas AND/OR/NOT', orden: 380 },
     'ex-canonica': { grupo: EX, num: 'Apunte', orden: 510 },
+    'ex-listas-anid': { grupo: EX, num: 'Parcial 1C16', orden: 515 },
     'ex-par': { grupo: EX, num: 'Extra 1', orden: 520 },
     'ex-anbn': { grupo: EX, num: 'Extra 2', orden: 530 },
     'ex-lista': { grupo: EX, num: 'Extra 3', orden: 540 }
+  },
+  parsing: {
+    'p3-practica': { grupo: P3, num: '1', orden: 110 },
+    'p3-canonica': { grupo: P3, num: 'canónica', orden: 120 },
+    'p3-parentesis': { grupo: P3, num: 'con paréntesis', orden: 130 },
+    'p3-siguientes': { grupo: P3, num: 'solo siguientes', orden: 140 },
+    'p3-primeros': { grupo: P3, num: 'solo primeros', orden: 150 },
+    'p3-nulos': { grupo: P3, num: 'con ε', orden: 160 },
+    'p3-ambigua': { grupo: P3, num: 'conflictos', orden: 170 },
+    'p3-slr-ok': { grupo: P3, num: 'sin conflictos', orden: 180 },
+    'p3-when': { grupo: L1, num: 'TE1 · when', orden: 210 },
+    'p3-coord': { grupo: EX, num: 'Parcial 2C24', orden: 310 }
+  },
+  gci: {
+    'p4-suma': { grupo: P4, num: 'asignación simple', orden: 110 },
+    'p4-prec': { grupo: P4, num: 'precedencia', orden: 120 },
+    'p4-paren': { grupo: P4, num: 'paréntesis', orden: 130 },
+    'p4-avg': { grupo: P4, num: 'AVG', orden: 140 },
+    'p4-multiple': { grupo: P4, num: 'asignación múltiple', orden: 150 },
+    'p4-larga': { grupo: P4, num: 'expresión larga', orden: 160 },
+    'p4-terc-suma': { grupo: P4, num: 'tercetos', orden: 170 },
+    'p4-terc-avg': { grupo: P4, num: 'tercetos del AVG', orden: 180 },
+    'p5-if': { grupo: P5, num: 'if', orden: 210 },
+    'p5-ifelse': { grupo: P5, num: 'if-else', orden: 220 },
+    'p5-minimo': { grupo: P5, num: 'Mínimo', orden: 230 },
+    'p5-while': { grupo: P5, num: 'while', orden: 240 },
+    'p5-acum': { grupo: P5, num: 'while con acumulador', orden: 250 },
+    'p5-anidado': { grupo: P5, num: 'if dentro de while', orden: 260 }
+  },
+  asm: {
+    'p6-suma': { grupo: P6, num: 'suma', orden: 110 },
+    'p6-resta': { grupo: P6, num: 'resta', orden: 120 },
+    'p6-mixta': { grupo: P6, num: 'con auxiliar', orden: 130 },
+    'p6-dos-prod': { grupo: P6, num: 'dos productos', orden: 140 },
+    'p6-division': { grupo: P6, num: 'división', orden: 150 },
+    'p6-constante': { grupo: P6, num: 'AVG y la constante', orden: 160 },
+    'p6-larga': { grupo: EX, num: 'Apunte', orden: 210 }
   }
 }
 

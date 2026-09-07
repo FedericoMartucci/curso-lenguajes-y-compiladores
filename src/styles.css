@@ -226,3 +226,10 @@ details.modelo summary{cursor:pointer;font-size:13px;color:var(--text-accent)}
 .trazo .barra{flex:1;height:6px;background:var(--surface-1);border:.5px solid var(--border);border-radius:3px;overflow:hidden}
 .trazo .barra>div{height:100%;background:var(--ok)}
 .hechoflag{color:var(--ok);font-weight:500}
+
+/* tabla SLR de la solución de parsing */
+.tablaslr{border-collapse:collapse;font-family:var(--font-mono);font-size:12px;margin:6px 0}
+.tablaslr th,.tablaslr td{border:.5px solid var(--border);padding:4px 8px;text-align:center;white-space:nowrap}
+.tablaslr th{background:var(--surface-1);font-weight:500}
+.tablaslr td.ir{background:var(--surface-1)}
+.tablaslr td.conf{background:var(--badbg);color:var(--bad);font-weight:500}

@@ -8,6 +8,7 @@ import { testGLC, parseGrammar, earleyAccepts, tokenize } from '../engines/earle
 import { testAccionCodigo, codigoModelo, ATTR_LABEL } from '../engines/accionLexica.js'
 import { useLocalStorage } from '../lib/hooks.js'
 import CodeEditor from './CodeEditor.jsx'
+import { TabParsing, TabGCI, TabASM, PARSING, GCI, ASM } from './SandboxAvanzado.jsx'
 
 const muestra = (s) => (s === '' ? '⟨vacío⟩' : String(s).length > 46 ? String(s).slice(0, 46) + '…' : String(s))
 
@@ -309,7 +310,7 @@ export default function Sandbox() {
   const [hechos, setHechos] = useLocalStorage('lyc-sandbox', {})
   const marcar = (tipo, id) => setHechos((h) => ({ ...h, [tipo + ':' + id]: true }))
 
-  const total = ER.length + LEX.length + GLC.length
+  const total = ER.length + LEX.length + GLC.length + PARSING.length + GCI.length + ASM.length
   const resueltos = Object.values(hechos).filter(Boolean).length
   const cuenta = (tipo, lista) => lista.filter((e) => hechos[tipo + ':' + e.id]).length
 
@@ -341,11 +342,23 @@ export default function Sandbox() {
         <button className={'tab' + (tab === 'glc' ? ' on' : '')} onClick={() => setTab('glc')}>
           Gramáticas ({cuenta('glc', GLC)}/{GLC.length})
         </button>
+        <button className={'tab' + (tab === 'parsing' ? ' on' : '')} onClick={() => setTab('parsing')}>
+          Parsing SLR ({cuenta('parsing', PARSING)}/{PARSING.length})
+        </button>
+        <button className={'tab' + (tab === 'gci' ? ' on' : '')} onClick={() => setTab('gci')}>
+          Código intermedio ({cuenta('gci', GCI)}/{GCI.length})
+        </button>
+        <button className={'tab' + (tab === 'asm' ? ' on' : '')} onClick={() => setTab('asm')}>
+          Assembler ({cuenta('asm', ASM)}/{ASM.length})
+        </button>
       </div>
 
       {tab === 'er' && <TabER hechos={hechos} marcar={marcar} />}
       {tab === 'lex' && <TabLex hechos={hechos} marcar={marcar} />}
       {tab === 'glc' && <TabGLC hechos={hechos} marcar={marcar} />}
+      {tab === 'parsing' && <TabParsing hechos={hechos} marcar={marcar} Selector={Selector} />}
+      {tab === 'gci' && <TabGCI hechos={hechos} marcar={marcar} Selector={Selector} />}
+      {tab === 'asm' && <TabASM hechos={hechos} marcar={marcar} Selector={Selector} />}
     </>
   )
 }

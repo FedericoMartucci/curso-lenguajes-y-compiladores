@@ -211,5 +211,53 @@ export const ER_EJ = [
     m: '{LETRA}({LETRA}|{DIGITO}|"_")*',
     ac: ['a', 'mi_var', 'a_1_b', 'x__y', 'A_B_C_D_E_F'],
     rc: ['', '_a', '1a', 'a-b', 'a b', '_', 'a.b']
+  },
+  {
+    id: 'ex-id-c', t: 'Identificador estilo C', fuente: 'Extra · lenguajes reales', nivel: 'básico',
+    c: 'Como en C: empieza con letra o guión bajo, y sigue con letras, dígitos o guiones bajos.',
+    cj: 'LETRA   [a-zA-Z]\nDIGITO  [0-9]',
+    m: '({LETRA}|"_")({LETRA}|{DIGITO}|"_")*',
+    ac: ['a', '_a', '_', 'mi_var', '__x1', 'A1_b2'],
+    rc: ['', '1a', 'a-b', 'a b', '1_a', 'a.b', '$x']
+  },
+  {
+    id: 'ex-telefono', t: 'Teléfono con característica', fuente: 'Extra · estilo parcial', nivel: 'medio',
+    c: 'Formato (011) 4444-5555: paréntesis con 2 a 4 dígitos, un espacio, 4 dígitos, guión y 4 dígitos.',
+    cj: 'D  [0-9]',
+    m: '"(" {D}{D}{D}?{D}? ")" " " {D}{D}{D}{D} "-" {D}{D}{D}{D}',
+    ac: ['(011) 4444-5555', '(0111) 1234-5678', '(11) 0000-0000'],
+    rc: ['', '(1) 4444-5555', '(01111) 4444-5555', '011 4444-5555', '(011)4444-5555', '(011) 444-5555', '(011) 4444 5555']
+  },
+  {
+    id: 'ex-dni', t: 'DNI con puntos', fuente: 'Extra · estilo parcial', nivel: 'medio',
+    c: 'Documento con separador de miles: 1 o 2 dígitos, punto, 3 dígitos, punto, 3 dígitos. El primer dígito no puede ser cero.',
+    cj: 'D   [0-9]\nD1  [1-9]',
+    m: '{D1}{D}?"."{D}{D}{D}"."{D}{D}{D}',
+    ac: ['1.234.567', '12.345.678', '9.999.999'],
+    rc: ['', '0.123.456', '123.456.789', '12345678', '12.34.567', '1.234.56', '1,234,567']
+  },
+  {
+    id: 'ex-binaria', t: 'Constante binaria', fuente: 'Extra · bases', nivel: 'básico',
+    c: 'Constante binaria estilo C: empieza con 0b o 0B y sigue con al menos un cero o uno.',
+    cj: 'B  [01]',
+    m: '"0"("b"|"B"){B}+',
+    ac: ['0b0', '0b1010', '0B1111', '0b00000001'],
+    rc: ['', '0b', '0b2', '1010', 'b1010', '0xb1', '0b1a']
+  },
+  {
+    id: 'ex-asig-comp', t: 'Operadores de asignación compuesta', fuente: 'Extra · operadores', nivel: 'básico',
+    c: 'Reconocer la asignación simple y las compuestas: = += -= *= /=',
+    cj: '',
+    m: '("+"|"-"|"*"|"/")?"="',
+    ac: ['=', '+=', '-=', '*=', '/='],
+    rc: ['', '==', '++', '=+', '%=', ':=', '+ =']
+  },
+  {
+    id: 'ex-com-linea', t: 'Comentario de línea', fuente: 'Extra · comentarios', nivel: 'medio',
+    c: 'Comentario que empieza con // y sigue hasta el fin de línea con cualquier cosa que no sea un salto de línea.',
+    cj: 'NOSALTO  [^\\n]',
+    m: '"//"{NOSALTO}*',
+    ac: ['//', '// hola', '//comentario con 123 y símbolos!', '// a // b'],
+    rc: ['', '/', '/ / hola', 'hola //', '/* hola */']
   }
 ]
