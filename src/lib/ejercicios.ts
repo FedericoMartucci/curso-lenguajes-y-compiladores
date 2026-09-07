@@ -63,6 +63,17 @@ export interface EntradaEjercicio {
   num: string
   nivel: string
   etiquetaTipo: string
+  /** Palabras extra por las que se lo puede buscar: 'polaca', 'tercetos', 'coprocesador'. */
+  notacion?: string
+}
+
+const NOTACION: Record<TipoEjercicio, string> = {
+  er: 'expresion regular er token conjunto lexico flex',
+  lex: 'accion lexica cota lexema longitud valor',
+  glc: 'gramatica bnf glc libre de contexto derivacion',
+  parsing: 'parsing slr primeros siguientes first follow tabla conflictos lr',
+  gci: 'codigo intermedio polaca inversa tercetos backpatching celdas',
+  asm: 'assembler coprocesador 8087 pila registros fld fstp'
 }
 
 const aplanar = <E extends { id: string; t: string; fuente: string; nivel: string }>(
@@ -71,7 +82,8 @@ const aplanar = <E extends { id: string; t: string; fuente: string; nivel: strin
   lista.map((e) => ({
     tipo, id: e.id, t: e.t, fuente: e.fuente,
     grupo: e.grupo, num: e.num, nivel: e.nivel,
-    etiquetaTipo: solapa(tipo).etiqueta
+    etiquetaTipo: solapa(tipo).etiqueta,
+    notacion: NOTACION[tipo]
   }))
 
 export const TODOS_LOS_EJERCICIOS: EntradaEjercicio[] = [

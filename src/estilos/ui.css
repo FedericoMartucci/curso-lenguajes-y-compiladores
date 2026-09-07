@@ -237,7 +237,12 @@ kbd {
 }
 .paleta__lupa { color: var(--ink-3); font-size: var(--fs-lg); }
 
-.paleta__lista { max-height: min(420px, 60dvh); overflow-y: auto; padding: var(--s2); }
+.paleta__lista {
+  max-height: min(420px, 60dvh);
+  overflow-y: auto; overflow-x: hidden;
+  padding: var(--s2);
+  overscroll-behavior: contain;
+}
 .paleta__seccion {
   font-size: var(--fs-xs); font-weight: 600; color: var(--ink-3);
   letter-spacing: 0.03em; text-transform: uppercase;
@@ -252,14 +257,18 @@ kbd {
 .paleta__item[data-sel='true'] { background: var(--accent-bg); }
 .paleta__item[data-sel='true'] .paleta__item__sub { color: var(--accent); }
 .paleta__item__icono {
-  flex: 0 0 22px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-align: center;
+  flex: 0 0 32px; font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  text-align: left; padding-top: 2px; align-self: flex-start;
 }
-.paleta__item__cuerpo { flex: 1; min-width: 0; }
+.paleta__item__cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+/* display:block es obligatorio: en un <span> inline, text-overflow no hace nada y el
+   título largo desbordaba la caja de la paleta. */
 .paleta__item__titulo {
-  font-size: var(--fs-base); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: block; font-size: var(--fs-base); line-height: 1.35;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .paleta__item__sub {
-  font-size: var(--fs-xs); color: var(--ink-3);
+  display: block; font-size: var(--fs-xs); color: var(--ink-3); line-height: 1.35;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .paleta__pie {

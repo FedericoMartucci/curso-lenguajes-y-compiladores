@@ -38,6 +38,7 @@
 }
 .semana-chip:hover { border-color: var(--hairline-strong); text-decoration: none; }
 .semana-chip__top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s2); }
+.semana-chip__n, .semana-chip__pct, .semana-chip__tema { display: block; }
 .semana-chip__n { font-size: var(--fs-base); font-weight: 600; color: var(--ink); }
 .semana-chip__pct { font-size: var(--fs-xs); color: var(--ink-3); font-family: var(--mono); }
 .semana-chip__tema {

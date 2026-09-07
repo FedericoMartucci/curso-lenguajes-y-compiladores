@@ -3,6 +3,7 @@ import { LECCIONES } from '../lib/curso.ts'
 import { SEMANAS } from '../lib/plan.ts'
 import type { Ruta } from '../lib/router.ts'
 import { TODOS_LOS_EJERCICIOS } from '../lib/ejercicios.ts'
+import type { TipoEjercicio } from '../tipos/ejercicios.ts'
 
 interface Item {
   clave: string
@@ -33,6 +34,11 @@ const ACCIONES: Item[] = [
   { clave: 'a:ajustes', seccion: 'Ir a', icono: '→', titulo: 'Ajustes y cuenta', sub: 'Tema, ritmo, progreso', busca: 'ajustes cuenta tema oscuro ritmo', ruta: { v: 'ajustes' } }
 ]
 
+/** Código corto de cada solapa, para ubicar el ejercicio de un vistazo en la lista. */
+const CODIGO: Record<TipoEjercicio, string> = {
+  er: 'ER', lex: 'LEX', glc: 'GLC', parsing: 'SLR', gci: 'GCI', asm: 'ASM'
+}
+
 /** Normaliza para buscar sin tildes: "leccion" encuentra "lección". */
 const norm = (s: string): string =>
   s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -60,10 +66,10 @@ export default function PaletaComandos({ abierta, cerrar, ir }: Props) {
       ruta: { v: 'leccion', id: l.id } as Ruta
     })),
     ...TODOS_LOS_EJERCICIOS.map((e) => ({
-      clave: `e:${e.tipo}:${e.id}`, seccion: 'Ejercicios', icono: '⌘',
+      clave: `e:${e.tipo}:${e.id}`, seccion: 'Ejercicios', icono: CODIGO[e.tipo],
       titulo: e.t,
       sub: `${e.etiquetaTipo} · ${e.grupo} · ${e.num}`,
-      busca: norm(`${e.t} ${e.grupo} ${e.num} ${e.fuente} ${e.etiquetaTipo}`),
+      busca: norm(`${e.t} ${e.grupo} ${e.num} ${e.fuente} ${e.etiquetaTipo} ${e.notacion ?? ''}`),
       ruta: { v: 'sandbox', tipo: e.tipo, ej: e.id } as Ruta
     }))
   ], [])

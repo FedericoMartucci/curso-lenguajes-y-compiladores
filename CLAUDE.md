@@ -1,87 +1,119 @@
 # CLAUDE.md — contexto del proyecto
 
-App de estudio de **Lenguajes y Compiladores** (UNLaM, cód. 1124/3663). React + Vite, **sin backend**:
-todo el contenido viaja con el bundle y el progreso del usuario vive en `localStorage`.
-Dos partes: **teoría** (110 lecciones, 417 preguntas) y un **sandbox que valida ejercicios de verdad**
-(98 ejercicios, 926 casos) ejecutando lo que escribe el alumno.
+App de estudio de **Lenguajes y Compiladores** (UNLaM, cód. 1124/3663). React 19 + Vite + TypeScript
+estricto. Tres cosas en un solo lugar:
+
+- **Teoría**: 110 lecciones y 417 preguntas escritas sobre Aho y los apuntes de la cátedra.
+- **Sandbox que valida de verdad**: 98 ejercicios y 926 casos, ejecutando lo que escribe el alumno.
+- **Plan de estudio**: las 16 semanas del cronograma real de la cursada.
+
+El progreso vive en `localStorage` y se sincroniza con una cuenta de Google (Supabase).
+Estrategia **local-first**: el navegador es la fuente de verdad mientras usás la app.
+
+La estrategia de producto y las decisiones de diseño están en **`PRODUCT.md`** y **`DESIGN.md`**.
+Leelos antes de cambiar la interfaz: ahí está el porqué de cada cosa.
 
 ## Comandos
 
 ```bash
 npm install
 npm run dev      # servidor de desarrollo
-npm run data     # regenera src/data/curso.js desde content/
+npm run data     # regenera src/data/{indice,contenido}.ts desde content/
 npm run build    # npm run data + vite build -> dist/
+npm run tipos    # tsc --noEmit
 npm test         # valida el banco de ejercicios (926 casos)
-npm run smoke    # renderiza las 13 rutas para detectar errores de componentes
-npm run check    # test + smoke  ← correr SIEMPRE antes de commitear
+npm run smoke    # renderiza las 24 rutas para detectar errores de componentes
+npm run check    # tipos + test + smoke  ← correr SIEMPRE antes de commitear
 ```
 
 ## Arquitectura
 
 ```
-index.html                Entrada de Vite.
-src/main.jsx  App.jsx     Arranque y router por hash (sin react-router).
-src/lib/hooks.js          useHashRoute, useLocalStorage, useTheme.
-src/lib/curso.js          Aplana lecciones, arma el banco de preguntas, búsqueda.
-src/components/
-  Sidebar.jsx             Navegación, progreso, buscador.
-  Vistas.jsx              Inicio, Leccion, Banco, Buscar, Transcripciones, Enunciados.
-  Ejercitar.jsx           Drill de preguntas con autoevaluación.
-  Sandbox.jsx             Contenedor + solapas ER / acciones léxicas / gramáticas.
-  SandboxAvanzado.jsx     Solapas parsing SLR / código intermedio / Assembler.
-  CodeEditor.jsx          Editor con resaltado (overlay <pre> + <textarea>).
-  Mesa.jsx                Teclado de símbolos, bloc y constructor de árboles SVG.
-src/engines/              Lógica pura, sin React. Testeable desde node.
-src/data/                 Contenido y bancos de ejercicios.
-content/mod-00..15.js     FUENTE DE VERDAD de la teoría.
-public/artifacts/         Visualizadores embebidos por iframe en lecciones.
-tests/                    run.js (banco) y smoke.js (rutas).
-build.js                  content/ -> src/data/curso.js
+index.html                 Entrada de Vite.
+src/main.tsx  App.tsx      Arranque, shell, atajos globales y despacho de rutas.
+src/tipos/                 Tipos del dominio: curso, ejercicios, motores, plan, progreso.
+src/lib/
+  router.ts                Router por History API. Rutas reales, sin hash.
+  curso.ts                 Índice del curso + carga diferida del contenido.
+  contenido.ts             Hooks para el contenido diferido (useCuerpo, useBanco).
+  ejercicios.ts            Índice único de los 98 ejercicios, decorados.
+  plan.ts                  Las 16 semanas del cronograma de la cátedra.
+  hoy.ts                   Qué te toca hoy: cruza el plan con el progreso.
+  progreso.tsx             Store único de estudio + fusión entre pestañas y con el servidor.
+  srs.ts                   Repetición espaciada (SM-2 simplificado, tres calificaciones).
+  sesion.tsx  supabase.ts  sync.ts    Cuenta con Google y sincronización.
+  hooks.ts                 localStorage, tema, Escape, reduced-motion.
+src/ui/                    Primitivas: Boton, Pill, Campo, Progreso, Cargando.
+src/componentes/           BarraLateral, PaletaComandos, Enlace, CodeEditor, Casos, Teclado.
+src/vistas/                Una por pantalla. sandbox/ tiene un panel por solapa.
+src/engines/               Lógica pura, sin React. Testeable desde node.
+src/estilos/               tokens, base, ui, shell, vistas. Un archivo por capa.
+src/data/                  Contenido generado y bancos de ejercicios.
+content/mod-00..15.js      FUENTE DE VERDAD de la teoría. Sigue en JS a propósito.
+public/fonts/              IBM Plex Sans y Mono, autoalojadas.
+public/artifacts/          Visualizadores embebidos por iframe en lecciones.
+supabase/esquema.sql       Tabla de progreso y políticas RLS.
+tests/                     run.ts (banco) y smoke.tsx (rutas).
+build.js                   content/ -> src/data/{indice,contenido}.ts
 ```
 
 ## Invariantes — no romper
 
-1. **`src/data/curso.js` es GENERADO.** Nunca editarlo a mano. Se edita `content/mod-*.js` y se corre
-   `npm run data`. Está commiteado a propósito para que el deploy no dependa de un paso extra.
-2. **Todo ejercicio del sandbox debe tener una respuesta modelo que pase su propio set de casos.**
-   `npm test` lo verifica; si agregás un ejercicio con un modelo incorrecto, el test falla. Es la red
-   de seguridad principal del proyecto: no la desactives.
-3. **Todo ejercicio necesita entrada en `src/data/ejercicios/meta.js`** (`grupo`, `num`, `orden`).
-   El test falla si queda alguno sin numerar.
-4. **Sin backend y offline-first.** Nada de fetch a servicios, ni variables de entorno, ni base de
-   datos. El estado del usuario va en `localStorage` con `useLocalStorage` (que degrada a memoria si
-   falla, para modo privado).
-5. **Router por hash.** No usar rutas con `/` reales: evita configurar rewrites y permite abrir el
-   `dist/` desde el sistema de archivos. `vite.config.js` usa `base: './'` por lo mismo.
-6. **Dependencias mínimas.** Hoy son solo `react`, `react-dom`, `vite` y `@vitejs/plugin-react`.
-   Antes de agregar una, evaluar si vale: el bundle ya pesa ~1.36 MB (395 kB gzip).
-7. **Tema claro y oscuro.** Usar siempre las variables CSS de `src/styles.css`
-   (`--surface-*`, `--text-*`, `--ok`, `--bad`…). Nunca colores hardcodeados.
-8. **Español rioplatense** en todo el texto de la interfaz y del contenido, tratando de "vos".
+1. **`src/data/indice.ts` y `src/data/contenido.ts` son GENERADOS.** Nunca editarlos a mano. Se edita
+   `content/mod-*.js` y se corre `npm run data`. Están commiteados a propósito para que el deploy no
+   dependa de un paso extra. `content/` sigue en JS porque lo ejecuta un `vm` de Node y son literales
+   de HTML: compilarlo antes no agregaría seguridad de tipos real.
+2. **El contenido va partido en dos.** El índice (21 kB) viaja siempre porque lo necesita la
+   navegación; el contenido (719 kB) se carga con `import()` dinámico. Si necesitás el cuerpo de una
+   lección o una respuesta, usá `useCuerpo` / `useBanco`, nunca un import estático de `contenido.ts`.
+3. **Todo ejercicio del sandbox debe tener una respuesta modelo que pase su propio set de casos.**
+   `npm test` lo verifica. Es la red de seguridad principal del proyecto: no la desactives.
+4. **Todo ejercicio necesita entrada en `src/data/ejercicios/meta.ts`** (`grupo`, `num`, `orden`).
+   El test falla si queda alguno sin numerar. Si el `num` pasa de 7 caracteres, el índice lo muestra
+   como prefijo del título en vez de en la columna.
+5. **Local-first, no online-first.** El navegador es la fuente de verdad mientras usás la app; la
+   cuenta es una copia que se fusiona por marca de tiempo. Ninguna acción del alumno puede quedar
+   esperando a la red. Sin `VITE_SUPABASE_*` la app arranca en modo local, que es lo que permite
+   desarrollar y correr los tests sin credenciales.
+6. **La fusión de progreso nunca pierde.** `fusionar()` en `progreso.tsx` es el único lugar donde se
+   resuelven conflictos: entre pestañas y contra el servidor. No desmarca un ejercicio resuelto ni
+   borra una lectura. Si agregás un campo al progreso, agregalo también ahí.
+7. **Rutas reales, no hash.** El rewrite está en `vercel.json`. Todo enlace interno usa el componente
+   `Enlace`, que renderiza un `<a href>` real: se llega con Tab, se abre en otra pestaña y se copia
+   el link. Nunca un `<a onClick>` sin href.
+8. **El plan sugiere, nunca bloquea.** Todas las lecciones y todos los ejercicios están siempre
+   accesibles. El plan puede decir qué conviene; no puede impedir nada.
+9. **La barra de progreso mide al alumno, no al contenido.** La cobertura del contenido
+   (`coberturaContenido`) solo se muestra en Ajustes.
+10. **Ningún texto usa un gris más claro que `--ink-3`** (4.6:1 como piso, medido contra cada
+    superficie en ambos temas). Los grises decorativos que no son texto viven en `--hairline`.
+    Nunca un color literal fuera de `src/estilos/tokens.css`.
+11. **Español rioplatense** en todo el texto de la interfaz y del contenido, tratando de "vos".
+12. **Dependencias acotadas.** Hoy: `react`, `react-dom`, `@supabase/supabase-js`, `vite`,
+    `@vitejs/plugin-react`, `vite-plugin-pwa`, `typescript`. Antes de agregar una, evaluar si vale.
 
 ## Contratos de los motores
 
 Todos exportan funciones puras y se pueden probar desde node sin navegador.
 
-- **`regex.js`** — compila la notación de ER de la cátedra a `RegExp`.
+- **`regex.ts`** — compila la notación de ER de la cátedra a `RegExp`.
   Sintaxis: `{CONJUNTO}` (referencia), `[a-z]` (clase), `"texto"` (literal exacto), `* + ? | ( )`,
   concatenación por yuxtaposición, espacios ignorados. `testER(expr, conjuntos, aceptar, rechazar)`.
-- **`lexica.js`** — atributos del lexema (`valor`, `valor_abs`, `longitud`,
+- **`lexica.ts`** — atributos del lexema (`valor`, `valor_abs`, `longitud`,
   `longitud_sin_comillas`, `cant_guiones_bajos`, `cant_guiones`) y comparación con la cota.
-- **`accionLexica.js`** — parsea el **pseudocódigo** que escribe el alumno (`if ( … ) return …; else error(…)`),
+- **`accionLexica.ts`** — parsea el **pseudocódigo** que escribe el alumno (`if ( … ) return …; else error(…)`),
   extrae la condición y devuelve un predicado. Acepta `and`/`or`, paréntesis, el número de cualquier
   lado y llamadas tipo `len(yytext)`, `val()`, `abs(valor)`. También exporta `resaltar()` para el editor.
-- **`earley.js`** — reconocedor Earley. Soporta ε y recursión a izquierda.
+- **`earley.ts`** — reconocedor Earley. Soporta ε y recursión a izquierda.
   Formato de gramática: `NoTerminal -> símbolos | alternativa`, símbolos separados por espacios,
   no terminal = todo lo que aparece a la izquierda alguna vez, start = LHS de la primera regla.
-- **`parsing.js`** — gramática aumentada, PRIMEROS/SIGUIENTES, ítems LR(0), CLOSURE/GOTO y tabla SLR
+- **`parsing.ts`** — gramática aumentada, PRIMEROS/SIGUIENTES, ítems LR(0), CLOSURE/GOTO y tabla SLR
   con conflictos. `validarConjuntos()` corrige lo que carga el alumno.
-- **`polaca.js`** — intérprete de polaca inversa y de tercetos. **Valida por ejecución.**
+- **`polaca.ts`** — intérprete de polaca inversa y de tercetos. **Valida por ejecución.**
   Convención: celdas separadas por espacios, **numeradas desde 1**; `BF` salta si es falso y `BI` es
   incondicional, con la **celda destino en la posición siguiente al salto**. Admite las dos
   convenciones de asignación (`valor destino :=` y `destino valor :=`). Corta si detecta ciclo infinito.
-- **`coprocesador.js`** — simulador del 8087. `FADD/FSUB/FMUL/FDIV` hacen `ST(1) := ST(1) op ST(0)` y
+- **`coprocesador.ts`** — simulador del 8087. `FADD/FSUB/FMUL/FDIV` hacen `ST(1) := ST(1) op ST(0)` y
   pop. `FLD` de una constante literal es error a propósito (es la trampa que toma la cátedra).
 
 ## Cómo agregar cosas
@@ -89,21 +121,28 @@ Todos exportan funciones puras y se pueden probar desde node sin navegador.
 **Una lección de teoría:** editar el `content/mod-NN.js` que corresponda (cada archivo hace
 `M.push({ id, titulo, parcial, resumen, lecciones: [...] })`). Cada lección lleva
 `{ id, titulo, aho, badges, estado: 'dictada', html, qa: [{q, a}] }`. El `html` usa las clases
-`callout tgt` (🎯 lo que entra al parcial) y `callout aho` (📘 profundidad de Aho). Después `npm run data`.
+`callout tgt` (🎯 lo que entra al parcial) y `callout aho` (📘 profundidad de Aho). Después
+`npm run data`. Si la lección pertenece a un módulo nuevo, agregalo también a una semana en
+`src/lib/plan.ts`: si no, no aparece en el plan.
 
 **Un ejercicio del sandbox:** agregarlo al archivo de su tipo en `src/data/ejercicios/`, sumar su
-entrada en `meta.js` y correr `npm test`. Campos por tipo:
+entrada en `meta.ts` y correr `npm test`. Campos por tipo:
 
 | Tipo | Archivo | Campos propios |
 |---|---|---|
-| ER | `er.js` | `cj` (conjuntos), `m` (modelo), `ac`, `rc` |
-| Acciones léxicas | `lexicas.js` | `cj`, `mER`, `atr`, `op`, `cota`, `tests:[{v, ok, por}]` |
-| Gramáticas | `glc.js` | `m`, `ac`, `rc`, `nota` (opcional) |
-| Parsing | `parsing.js` | `gramatica`, `pedir: primeros\|siguientes\|ambos\|conflictos` |
-| Código intermedio | `gci.js` | `modo: polaca\|tercetos`, `programa`, `m`, `casos:[{inicial, esperado}]` |
-| Assembler | `asm.js` | `plantilla`, `m`, `casos:[{inicial, esperado}]` |
+| ER | `er.ts` | `cj` (conjuntos), `m` (modelo), `ac`, `rc` |
+| Acciones léxicas | `lexicas.ts` | `cj`, `mER`, `atr`, `op`, `cota`, `tests:[{v, ok, por}]` |
+| Gramáticas | `glc.ts` | `m`, `ac`, `rc`, `nota` (opcional) |
+| Parsing | `parsing.ts` | `gramatica`, `pedir: primeros\|siguientes\|ambos\|conflictos` |
+| Código intermedio | `gci.ts` | `modo: polaca\|tercetos`, `programa`, `m`, `casos:[{inicial, esperado}]` |
+| Assembler | `asm.ts` | `plantilla`, `m`, `casos:[{inicial, esperado}]` |
 
-En parsing **no se guarda la respuesta**: la calcula el motor, así siempre es consistente con la gramática.
+En parsing **no se guarda la respuesta**: la calcula el motor, así siempre es consistente con la
+gramática. Los tipos de `src/tipos/ejercicios.ts` hacen que un ejercicio mal formado no compile.
+
+**Una pantalla nueva:** agregar el caso a `Ruta` y a `parsear`/`aHref` en `src/lib/router.ts`, el
+caso en `Vista` (que vive a nivel de módulo en `App.tsx`, **nunca adentro de otro componente**), y
+la ruta a la lista de `tests/smoke.tsx`.
 
 ## Limitaciones conocidas (no son bugs)
 
@@ -112,8 +151,21 @@ En parsing **no se guarda la respuesta**: la calcula el motor, así siempre es c
   se lo aclara al alumno. No prometer en la UI que se valida la precedencia.
 - Los ejercicios de GCI y Assembler se validan por ejecución: cualquier solución que dé los mismos
   resultados pasa, aunque no coincida con el modelo. Es intencional.
-- El bundle es un solo chunk grande. Si molesta, la teoría (`curso.js`, ~750 kB) es la candidata
-  natural a cargarse con `import()` dinámico.
+- El plan reparte las 110 lecciones siguiendo el ritmo real de la cátedra, que es desparejo: la
+  semana 12 tiene 19 lecciones. No se maquilla para que quede prolijo; las semanas 1, 9 y 15 son
+  feriado y quedan de colchón.
+- La repetición espaciada usa días de calendario real, que no tienen nada que ver con las semanas
+  del plan. Una cosa es cuándo conviene volver a ver una pregunta y otra en qué semana vas.
+
+## Trampas que ya costaron caro
+
+- **Un componente declarado adentro de otro se remonta en cada render.** `Vista` estaba dentro de
+  `Contenido` y React perdía todo el estado local del árbol cada vez que cambiaba el progreso: el
+  resultado de una validación desaparecía al instante. Los componentes van a nivel de módulo.
+- **`text-overflow: ellipsis` no hace nada en un elemento inline.** Todo `<span>` que trunque tiene
+  que ser `display: block`. Pasó tres veces: paginador, lista de metas y paleta de comandos.
+- **Persistir en un efecto de montaje escribe basura.** `useBorrador` guardaba el borrador al montar
+  y creaba entradas de ejercicios nunca intentados. Solo se persiste después de una edición real.
 
 ## Antes de commitear
 
@@ -122,4 +174,5 @@ npm run check
 ```
 
 Los tests son la fuente de verdad sobre si el banco está sano. Si tocás un motor, corré también un
-caso a mano en node para ver el comportamiento real, no solo el verde del test.
+caso a mano en node para ver el comportamiento real, no solo el verde del test. Y si tocaste la
+interfaz, abrila: los tres bugs de arriba no los agarró ningún test.
