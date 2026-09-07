@@ -14,7 +14,7 @@ import { Barra } from '../ui/Progreso.tsx'
 interface Props { ir: (r: Ruta) => void; hoy: Hoy }
 
 export default function Inicio({ ir, hoy }: Props) {
-  const { progreso, cerrarSemana, irASemana } = useProgreso()
+  const { progreso, irASemana } = useProgreso()
   // sugerir, nunca imponer: si la cursada va por otra semana que la tuya, se dice y listo
   const segunCalendario = semanaDelCalendario()
   const desfasado = segunCalendario !== null && segunCalendario !== progreso.semana
@@ -161,12 +161,12 @@ export default function Inicio({ ir, hoy }: Props) {
           <div className="panel panel--plano" style={{ marginTop: 'var(--s4)' }}>
             <p className="panel__titulo">Semana {semana.n} completa</p>
             <p style={{ color: 'var(--ink-2)', marginBottom: 'var(--s4)' }}>
-              Leíste las {deLaSemana.length} lecciones. Podés cerrarla y pasar a la siguiente, o quedarte
-              afianzando con las preguntas y el sandbox.
+              Leíste las {deLaSemana.length} lecciones. Para cerrarla hay una evaluación corta de sus
+              módulos; si preferís, seguí afianzando con las preguntas y el sandbox antes de rendirla.
             </p>
             <div className="tira">
-              <Boton variante="primary" onClick={() => cerrarSemana(semana.n)}>
-                Cerrar la semana {semana.n}<Icono nombre="flecha" tam={14} />
+              <Boton variante="primary" onClick={() => ir({ v: 'evaluacion', n: semana.n })}>
+                Rendir para cerrar la semana {semana.n}<Icono nombre="flecha" tam={14} />
               </Boton>
               <Enlace a={{ v: 'plan' }} ir={ir}>ver el plan completo</Enlace>
             </div>

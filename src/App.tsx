@@ -11,6 +11,7 @@ import BarraLateral from './componentes/BarraLateral.tsx'
 import PaletaComandos from './componentes/PaletaComandos.tsx'
 import Inicio from './vistas/Inicio.tsx'
 import Plan from './vistas/Plan.tsx'
+import Evaluacion from './vistas/Evaluacion.tsx'
 import Leccion from './vistas/Leccion.tsx'
 import Ejercitar from './vistas/Ejercitar.tsx'
 import Examen from './vistas/Examen.tsx'
@@ -28,7 +29,7 @@ const Practicas = lazy(() => import('./vistas/Practicas.tsx'))
 const Clases = lazy(() => import('./vistas/Clases.tsx'))
 
 const TITULOS: Record<string, string> = {
-  inicio: 'Hoy', plan: 'Plan de estudio', leccion: 'Teoría', modulo: 'Teoría',
+  inicio: 'Hoy', plan: 'Plan de estudio', evaluacion: 'Evaluación', leccion: 'Teoría', modulo: 'Teoría',
   ejercitar: 'Ejercitación', examen: 'Modo examen', sandbox: 'Sandbox',
   mesa: 'Mesa de trabajo', practicas: 'Enunciados', clases: 'Clases grabadas',
   buscar: 'Buscar', ajustes: 'Ajustes', nada: 'No encontrado'
@@ -140,6 +141,7 @@ function Vista({ ruta, ir, hoy }: { ruta: Ruta; ir: (r: Ruta) => void; hoy: Hoy 
   switch (ruta.v) {
     case 'inicio': return <Inicio ir={ir} hoy={hoy} />
     case 'plan': return <Plan ir={ir} />
+    case 'evaluacion': return <Evaluacion n={ruta.n} ir={ir} />
     case 'leccion': return <Leccion id={ruta.id} ir={ir} />
     case 'modulo': return <Plan ir={ir} />
     case 'ejercitar': return <Ejercitar ir={ir} />

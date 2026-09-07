@@ -19,7 +19,7 @@ const ETIQUETA_CLASE: Record<string, string> = {
 }
 
 export default function Plan({ ir }: { ir: (r: Ruta) => void }) {
-  const { progreso, leida, irASemana, cerrarSemana, abrirSemana, setRitmo } = useProgreso()
+  const { progreso, leida, irASemana, abrirSemana, setRitmo } = useProgreso()
 
   const porSemana = useMemo(() => SEMANAS.map((s) => {
     const lecciones = LECCIONES.filter((l) => s.modulos.includes(l.mod.id))
@@ -62,7 +62,8 @@ export default function Plan({ ir }: { ir: (r: Ruta) => void }) {
         <p>
           <b>El plan sugiere, nunca bloquea.</b> Todas las lecciones y todos los ejercicios están
           siempre abiertos: si el profe nombra algo de la semana 12 en la semana 4, entrás igual.
-          Avanzás de semana cuando vos la cerrás, no cuando pasa el tiempo.
+          Lo único que hay que ganarse es <b>cerrar</b> una semana, que es una afirmación sobre lo
+          que sabés: para eso hay que rendir una evaluación corta de sus módulos.
         </p>
       </div>
 
@@ -137,8 +138,8 @@ export default function Plan({ ir }: { ir: (r: Ruta) => void }) {
 
               <div className="sem__acciones">
                 {activa
-                  ? <Boton tamaño="sm" variante="primary" onClick={() => cerrarSemana(s.n)}>
-                      Cerrar la semana {s.n}
+                  ? <Boton tamaño="sm" variante="primary" onClick={() => ir({ v: 'evaluacion', n: s.n })}>
+                      Rendir para cerrar
                     </Boton>
                   : <Boton tamaño="sm" variante="secondary" onClick={() => irASemana(s.n)}>
                       Estudiar esta semana

@@ -659,3 +659,22 @@ a.dato:hover { border-color: var(--hairline-strong); text-decoration: none; }
 .etapa--lista { border-color: var(--ok); color: var(--ok); }
 .etapa--lista[aria-pressed='true'] { background: var(--ok); color: var(--canvas); border-color: var(--ok); }
 .etapas__cuenta { margin-left: auto; font-family: var(--mono); font-size: var(--fs-xs); color: var(--ink-3); }
+
+/* ===================== Requisitos de la evaluación ===================== */
+.requisitos { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s2); }
+.requisito {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--s3); align-items: center;
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--hairline); border-radius: var(--r-md);
+  background: var(--surface);
+}
+.requisito--ok { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
+.requisito__t { font-size: var(--fs-md); font-weight: 600; }
+.requisito__sub { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 1px; line-height: 1.4; }
+.requisito--ok .requisito__sub { color: var(--ok); opacity: 0.8; }
+.requisito .barra { width: 120px; }
+@media (max-width: 620px) {
+  .requisito { grid-template-columns: auto minmax(0, 1fr); }
+  .requisito .barra, .requisito .btn { grid-column: 1 / -1; width: 100%; }
+}

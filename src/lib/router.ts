@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react'
 export type Ruta =
   | { v: 'inicio' }
   | { v: 'plan' }
+  | { v: 'evaluacion'; n: number }
   | { v: 'leccion'; id: string }
   | { v: 'modulo'; id: number }
   | { v: 'ejercitar' }
@@ -29,6 +30,7 @@ export function parsear(pathname: string, search = ''): Ruta {
   if (!a) return { v: 'inicio' }
   switch (a) {
     case 'plan': return { v: 'plan' }
+    case 'evaluacion': return b && /^\d+$/.test(b) ? { v: 'evaluacion', n: Number(b) } : { v: 'plan' }
     case 'leccion': return b ? { v: 'leccion', id: b } : { v: 'inicio' }
     case 'modulo': return b && /^\d+$/.test(b) ? { v: 'modulo', id: Number(b) } : { v: 'inicio' }
     case 'ejercitar': return { v: 'ejercitar' }
@@ -53,6 +55,7 @@ export function aHref(r: Ruta): string {
   switch (r.v) {
     case 'inicio': return '/'
     case 'plan': return '/plan'
+    case 'evaluacion': return '/evaluacion/' + r.n
     case 'leccion': return '/leccion/' + encodeURIComponent(r.id)
     case 'modulo': return '/modulo/' + r.id
     case 'ejercitar': return '/ejercitar'

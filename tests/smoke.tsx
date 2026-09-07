@@ -56,6 +56,7 @@ const App = (await import('../src/App.tsx')).default
 const RUTAS = [
   '/',
   '/plan',
+  '/evaluacion/4', '/evaluacion/7', '/evaluacion/99',
   '/leccion/0.1', '/leccion/6.4', '/leccion/15.2',
   '/leccion/no-existe',
   '/ejercitar',
