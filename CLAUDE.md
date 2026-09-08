@@ -227,6 +227,16 @@ la ruta a la lista de `tests/smoke.tsx`.
   descargo. Además el matching por substring castigaba el parafraseo correcto. Se intentó
   afinarlo (raíces, sinónimos de la materia) y andaba, pero seguía siendo una nota disfrazada
   para algo que la app no puede juzgar. Se sacó entero: la prosa es autoevaluación.
+- **El rewrite de Vercel usa path-to-regexp, no regex a secas.** El `source` era
+  `/((?!assets/|fonts/|…).*)` con un grupo sin nombre y un lookahead: no compilaba, así que
+  NO se aplicaba ninguna redirección y todas las rutas profundas (`/plan`, `/ejercitar`)
+  daban 404 en producción aunque anduvieran en `vite dev`. El lookahead además sobraba:
+  Vercel resuelve el filesystem ANTES de los rewrites, así que `"/(.*)"` -> `/index.html`
+  es el fallback de SPA correcto y no pisa `/assets` ni `/fonts`.
+- **Un patrón amplio en .gitignore se come assets del proyecto.** `*.png`, puesto para
+  excluir capturas de revisión, dejó `public/icono-192.png` y `icono-512.png` fuera del
+  repo: el manifest del PWA quedó apuntando a dos archivos que no existían en el deploy.
+  Los patrones de conveniencia van anclados (`/*.png`), no globales.
 - **Medir contraste justo después de cambiar el tema da números falsos.** `.vf__op` tiene
   `transition: background-color`, así que `getComputedStyle` devuelve el valor interpolado a
   mitad de la animación: dieron 1.19:1 y 1.50:1 tres pares que en realidad están en 12:1 y

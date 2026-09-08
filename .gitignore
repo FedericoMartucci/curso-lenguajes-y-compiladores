@@ -22,9 +22,9 @@ Thumbs.db
 # Vercel
 .vercel
 
-# capturas de la revisión visual
+# capturas de la revisión visual (solo las de la raíz: /public sí lleva PNG del proyecto)
 .playwright-mcp/
-*.png
+/*.png
 
 # artefactos de herramientas locales
 .impeccable/
