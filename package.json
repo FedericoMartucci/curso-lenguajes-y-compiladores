@@ -15,6 +15,9 @@
     "tipos": "tsc --noEmit",
     "contraste": "node tests/contraste.ts"
   },
+  "engines": {
+    "node": ">=22.6"
+  },
   "keywords": [
     "compiladores",
     "unlam",
