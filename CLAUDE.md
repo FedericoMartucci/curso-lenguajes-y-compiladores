@@ -233,6 +233,10 @@ la ruta a la lista de `tests/smoke.tsx`.
   daban 404 en producción aunque anduvieran en `vite dev`. El lookahead además sobraba:
   Vercel resuelve el filesystem ANTES de los rewrites, así que `"/(.*)"` -> `/index.html`
   es el fallback de SPA correcto y no pisa `/assets` ni `/fonts`.
+- **`cleanUrls: true` rompe el fallback de SPA.** Con esa opción `/index.html` deja de ser
+  direccionable (308 a `/`), así que el `destination` del rewrite no resuelve y TODA ruta
+  profunda cae a 404. Las dos cosas se ven bien por separado en `vercel.json` y juntas no
+  funcionan. Además redirigía los `/artifacts/*.html` que van en iframe.
 - **Un patrón amplio en .gitignore se come assets del proyecto.** `*.png`, puesto para
   excluir capturas de revisión, dejó `public/icono-192.png` y `icono-512.png` fuera del
   repo: el manifest del PWA quedó apuntando a dos archivos que no existían en el deploy.
