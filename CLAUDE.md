@@ -44,7 +44,7 @@ src/lib/
   progreso.tsx             Store único de estudio + fusión entre pestañas y con el servidor.
   srs.ts                   Repetición espaciada (SM-2 simplificado, tres calificaciones).
   sesion.tsx  supabase.ts  sync.ts    Cuenta con Google y sincronización.
-  comparar.ts              Compara la respuesta escrita con el modelo (motor o conceptos).
+  comparar.ts              Veredicto SÓLO donde hay algo que ejecutar: V/F y gramáticas.
   hooks.ts                 localStorage, tema, Escape, reduced-motion.
 src/ui/                    Primitivas: Boton, Pill, Campo, Progreso, Cargando, Icono.
 src/componentes/           BarraLateral, PaletaComandos, Enlace, CodeEditor, Casos, Teclado.
@@ -57,7 +57,8 @@ content/mod-00..15.js      FUENTE DE VERDAD de la teoría. Sigue en JS a propós
 public/fonts/              IBM Plex Sans y Mono, autoalojadas.
 public/artifacts/          Visualizadores embebidos por iframe en lecciones.
 supabase/esquema.sql       Tabla de progreso y políticas RLS.
-tests/                     run.ts (banco), fusion.ts (merge), contraste.ts (color) y smoke.tsx.
+tests/                     run.ts (banco), fusion.ts (merge), comparar.ts (qué se corrige y
+                           qué no), contraste.ts (color) y smoke.tsx (rutas).
 build.js                   content/ -> src/data/{indice,contenido}.ts
 ```
 
@@ -105,11 +106,15 @@ build.js                   content/ -> src/data/{indice,contenido}.ts
     `@vitejs/plugin-react`, `vite-plugin-pwa`, `typescript`. Antes de agregar una, evaluar si vale.
 14. **Ninguna credencial que no sea pública lleva prefijo `VITE_`.** Lo que tiene ese prefijo entra
     al bundle y es público, punto. La anon key de Supabase puede ir ahí porque RLS la limita.
-15. **Dos niveles de certeza y se dicen distinto.** El motor ejecuta y su veredicto es un hecho
-    (verde/rojo). La comparación por conceptos es una ayuda que NO dice si está bien (neutra).
-    Nunca darle a la segunda la voz de la primera: es la promesa central del proyecto. Se evaluó
-    meter un modelo de lenguaje para juzgar la prosa y se descartó a propósito — la app anda sin
-    conexión, sin cuenta y sin que nadie pague nada, y eso vale más que un veredicto opinable.
+15. **La app corrige lo que puede ejecutar y de lo demás no opina.** Hay veredicto en dos
+    lugares y los dos son hechos: las **V/F** (17 preguntas, el modelo declara su respuesta en
+    la primera negrita) y lo que un **motor** corre (gramáticas acá, todo el sandbox allá). Las
+    **339 de desarrollar son autoevaluación**: se muestra tu respuesta al lado del modelo y
+    calificás vos, sin puntaje ni señal automática. Se probaron dos y las dos se sacaron — un
+    modelo de lenguaje (ataba la app a una clave y a estar conectada) y contar conceptos del
+    modelo presentes en el texto ("tocás 2 de 6" **se lee como una nota** aunque aclare que no
+    lo es, y castigaba a quien lo escribía con sus palabras). Una señal poco confiable que se
+    lee como si lo fuera es peor que no tener ninguna. `tests/comparar.ts` falla si vuelve.
 16. **Dos fondos que significan cosas opuestas se separan en LUMINANCIA, no sólo en tono.**
     `--ok-bg` contra `--bad-bg`, `--accent-bg` contra las superficies. `npm run contraste` lo
     verifica leyendo `tokens.css`; también compara los dos bloques del tema oscuro, que están
@@ -217,16 +222,15 @@ la ruta a la lista de `tests/smoke.tsx`.
 - **Una tabla para llenar sin líneas de grilla no se ve como una tabla.** La tabla SLR tenía
   `border-collapse: separate`, `border-spacing: 0`, `td { padding: 0 }` y `.celda { border: 0 }`:
   90 casillas sin ningún límite visible hasta que una recibía foco.
-- **Un comparador que castiga el parafraseo miente.** `compararProsa` buscaba el término del
-  modelo como substring exacto, así que a un alumno que escribía "simplicidad del diseño",
-  "parser" y "espacios" donde el modelo decía "sencillez de diseño", "sintáctico" y "blancos"
-  le daba 2 de 6 — le decía "te faltó" a alguien que lo sabía. Se arregló con raíces y una
-  tabla de sinónimos de la materia. Aflojar el matching tiene el error simétrico (darle
-  conceptos a quien no escribió nada), así que `tests/comparar.ts` mide **las dos**
-  direcciones con piso y techo por caso, y está verificado que falla en las dos.
-- **Rellenar los conceptos con "palabras largas" inventa conceptos.** Si el modelo marcó tres
-  términos en negrita, ésos son los conceptos; completar hasta seis agregaba "ensucia",
-  "blancos" y "durante" y se los contaba al alumno como faltantes.
+- **Una señal aproximada se lee como una nota.** "Tu respuesta toca 2 de 6 conceptos" venía con
+  la aclaración de que no era una corrección, y no importaba: el número manda sobre el
+  descargo. Además el matching por substring castigaba el parafraseo correcto. Se intentó
+  afinarlo (raíces, sinónimos de la materia) y andaba, pero seguía siendo una nota disfrazada
+  para algo que la app no puede juzgar. Se sacó entero: la prosa es autoevaluación.
+- **Medir contraste justo después de cambiar el tema da números falsos.** `.vf__op` tiene
+  `transition: background-color`, así que `getComputedStyle` devuelve el valor interpolado a
+  mitad de la animación: dieron 1.19:1 y 1.50:1 tres pares que en realidad están en 12:1 y
+  5.66:1. Si auditás contraste desde el navegador, esperá a que la transición termine.
 
 ## Antes de commitear
 

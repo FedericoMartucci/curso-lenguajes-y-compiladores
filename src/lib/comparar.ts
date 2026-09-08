@@ -1,35 +1,32 @@
-/* Comparar la respuesta escrita contra el modelo.
+/* Comparar la respuesta escrita contra el modelo — sólo cuando se puede de verdad.
 
-   La honestidad de esto es el punto delicado del proyecto. Hay dos casos y NO son lo mismo:
+   La regla del proyecto: la app corrige lo que puede ejecutar, y de lo demás no opina.
 
-   1. **Verificable.** Si la respuesta es una gramática, una expresión regular o una polaca,
-      hay un motor que la puede correr. Ahí sí se dice "correcta" o "incorrecta", y se dice
-      por qué. Es el mismo estándar del sandbox.
+   1. **V/F** (17 preguntas). Tienen una respuesta definida y el modelo la declara en su
+      primera negrita. Se valida la elección: ahí "correcta" es un hecho. La justificación
+      que el alumno escriba al lado sigue siendo suya para calificar.
 
-   2. **No verificable.** Si la respuesta es prosa ("¿por qué SIGUIENTE(A) no alcanza?"),
-      ningún motor la puede juzgar sin un modelo de lenguaje, y la app anda sin conexión.
-      Ahí NO se dice si está bien: se muestra tu respuesta al lado del modelo y se marcan
-      los conceptos del modelo que aparecen en la tuya, como AYUDA para que te califiques.
-      Decir "correcta" ahí sería exactamente la promesa que el proyecto no se permite. */
+   2. **Gramáticas** (y en general lo que un motor corre). Se ejecuta contra las cadenas,
+      igual que en el sandbox. Otro hecho.
+
+   3. **Desarrollar** (339 preguntas). Prosa. Acá la app NO dice nada: muestra tu respuesta
+      al lado del modelo y te calificás vos. Hubo dos intentos de dar una señal automática y
+      los dos se descartaron. Un modelo de lenguaje ataba la app a una clave y a estar
+      conectada. Contar qué conceptos del modelo aparecían en tu texto era peor de lo que
+      parecía: "tocás 2 de 6" se LEE como una nota aunque diga que no lo es, y encima
+      castigaba a quien lo escribía con sus palabras. Una señal que no es confiable y se lee
+      como si lo fuera es peor que no tener ninguna. */
 
 import { parseGrammar, earleyAccepts, tokenize } from '../engines/earley.ts'
 import type { Gramatica } from '../tipos/motores.ts'
 
-export type ClaseComparacion = 'verificada' | 'asistida'
-
-export interface Concepto {
-  termino: string
-  presente: boolean
-}
-
+/** Sólo existe una clase: lo verificado. Lo que no se puede verificar no produce
+    comparación — devuelve null y la vista muestra el modelo para autoevaluarse. */
 export interface Comparacion {
-  clase: ClaseComparacion
-  /** Sólo en 'verificada': si la respuesta es correcta. */
-  ok?: boolean
-  /** Explicación en palabras. */
+  /** Si la respuesta es correcta. Es un hecho, no una estimación. */
+  ok: boolean
+  /** Por qué, en palabras. */
   detalle: string
-  /** Sólo en 'asistida': conceptos del modelo y si aparecen en tu texto. */
-  conceptos?: Concepto[]
 }
 
 const norm = (s: string): string =>
@@ -94,16 +91,17 @@ function muestras(g: Gramatica, max = 40): string[][] {
 
 /** Compara dos gramáticas por el lenguaje que aceptan, no por su forma.
     Es la misma honestidad que el sandbox: se valida el lenguaje, no la forma del árbol. */
-export function compararGramaticas(delAlumno: string, modelo: string): Comparacion {
+export function compararGramaticas(delAlumno: string, modelo: string): Comparacion | null {
   let ga: Gramatica, gm: Gramatica
   try {
     ga = parseGrammar(delAlumno)
     gm = parseGrammar(modelo)
     if (!ga.start) throw new Error('no pude leer tu gramática: falta una regla con la forma A -> …')
   } catch (e) {
-    return { clase: 'verificada', ok: false, detalle: e instanceof Error ? e.message : String(e) }
+    return { ok: false, detalle: e instanceof Error ? e.message : String(e) }
   }
-  if (!gm.start) return { clase: 'asistida', detalle: 'El modelo de esta pregunta no es una gramática.' }
+  // si el modelo no es una gramática no hay contra qué correr: mejor nada que una estimación
+  if (!gm.start) return null
 
   const pruebas = [...muestras(gm), ...muestras(ga)]
   const difieren: string[] = []
@@ -119,7 +117,7 @@ export function compararGramaticas(delAlumno: string, modelo: string): Comparaci
 
   if (difieren.length) {
     return {
-      clase: 'verificada', ok: false,
+      ok: false,
       detalle: `Tu gramática genera otro lenguaje. Por ejemplo: ${difieren.join(' · ')}`
     }
   }
@@ -128,157 +126,50 @@ export function compararGramaticas(delAlumno: string, modelo: string): Comparaci
   const recAlumno = tieneRecursionIzquierda(ga)
   if (!recModelo && recAlumno) {
     return {
-      clase: 'verificada', ok: false,
+      ok: false,
       detalle: 'Genera el mismo lenguaje, pero te quedó recursión por la izquierda y el ejercicio pide sacarla.'
     }
   }
 
   return {
-    clase: 'verificada', ok: true,
+    ok: true,
     detalle: 'Genera el mismo lenguaje que el modelo en todas las cadenas probadas' +
       (!recAlumno && !recModelo ? ', y sin recursión por la izquierda.' : '.')
   }
 }
 
-/* ---------- 2. asistida: prosa ---------- */
+/* ---------- 2. verificable: verdadero o falso ---------- */
 
-const VACIAS = new Set([
-  'para','porque','como','cuando','donde','cual','cuales','esto','esta','este','esos','esas',
-  'todo','toda','todos','todas','pero','mas','muy','solo','sola','tiene','tienen','hace','hacen',
-  'puede','pueden','entre','sobre','desde','hasta','antes','despues','siempre','nunca','tambien',
-  'que','los','las','del','con','por','una','uno','sus','ser','son','esta','estan','hay','fue'
-])
+/* Las 17 preguntas V/F del banco declaran su respuesta en la primera negrita del modelo
+   ("<p><b>Falso.</b> Un binario puede tener partes interpretadas…"). Eso alcanza para
+   validar la elección del alumno sin heurística ninguna: o eligió lo mismo que el modelo o
+   no. `tests/comparar.ts` recorre las 17 y falla si alguna deja de ser parseable, que es
+   la única forma de que esto se rompa en silencio al editar contenido. */
 
-/* Un alumno que sabe no repite el modelo palabra por palabra: escribe "simplicidad del
-   diseño" donde el modelo dice "sencillez de diseño", "parser" donde dice "sintáctico" y
-   "espacios" donde dice "blancos". La primera versión comparaba por substring exacto y le
-   daba 2 de 6 a un parafraseo fiel — o sea que le decía "te faltó" a alguien que lo sabía.
-   Un comparador que castiga saber decirlo con tus palabras es peor que no tener ninguno.
+export type ValorVF = 'V' | 'F'
 
-   Se resuelve con dos cosas chicas y deterministas, sin modelo de lenguaje: raíces (para la
-   flexión: plural, género, nominalizaciones) y una tabla de sinónimos acotada al vocabulario
-   de ESTA materia. La tabla es corta a propósito: cada entrada es una equivalencia real de
-   la cursada, no un diccionario general. Aflojar de más es el otro error posible, así que
-   `tests/comparar.ts` mide las dos direcciones: que el parafraseo sume y que una respuesta
-   sin contenido siga dando cero. */
-
-/** Familias de términos que en esta materia significan lo mismo. */
-const SINONIMOS: string[][] = [
-  ['sintactico', 'parser', 'sintactica'],
-  ['lexico', 'scanner', 'lexer', 'lexica'],
-  ['blanco', 'espacio', 'tabulacion'],
-  ['sencillez', 'simplicidad', 'sencillo', 'simple'],
-  ['eficiencia', 'rendimiento', 'velocidad', 'rapidez'],
-  ['portabilidad', 'portable'],
-  ['cadena', 'string', 'palabra'],
-  ['reducir', 'reduccion', 'reduce'],
-  ['desplazar', 'desplazamiento', 'shift'],
-  ['token', 'terminal'],
-  ['lexema', 'texto'],
-  ['derivacion', 'derivar'],
-  ['ambigua', 'ambiguedad', 'ambiguo'],
-  ['recursion', 'recursiva', 'recursivo'],
-  ['tabla de simbolos', 'ts'],
-  ['arbol', 'arbol sintactico'],
-  ['pila', 'stack'],
-  ['estado', 'nodo'],
-  ['error', 'fallo', 'falla'],
-  ['conjunto', 'set'],
-  ['gramatica', 'produccion', 'regla'],
-  ['optimizar', 'optimizacion', 'mejorar'],
-  ['intermedio', 'intermedia'],
-  ['ejecucion', 'ejecutar', 'corre', 'runtime'],
-  ['compilacion', 'compilar', 'compilador'],
-  ['interprete', 'interpretar', 'interpretacion']
-]
-
-/** Palabra -> índice de su familia, para preguntar equivalencia en O(1). */
-const FAMILIA = new Map<string, number>()
-SINONIMOS.forEach((fam, i) => fam.forEach((p) => FAMILIA.set(p, i)))
-
-/** Raíz aproximada: saca la flexión más común del español. Conservadora a propósito —
-    sobre-recortar junta palabras que no significan lo mismo y eso infla el puntaje. */
-function raiz(p: string): string {
-  const w = norm(p)
-  if (w.length <= 4) return w
-  const m = w.match(/^(.*?)(ciones|cion|idades|idad|mente|amos|aron|ando|iendo|ados|adas|ada|ado|ar|er|ir|es|as|os|a|o|s)$/)
-  const r = m?.[1] ?? w
-  return r.length >= 4 ? r : w
+/** La respuesta del modelo a una V/F, o null si su formato no la declara. */
+export function veredictoVF(modeloHtml: string): ValorVF | null {
+  const m = modeloHtml.match(/<b>\s*(verdadero|falso)\b/i)
+  if (!m) return null
+  return (m[1] ?? '').toLowerCase().startsWith('v') ? 'V' : 'F'
 }
 
-/** ¿Dos palabras cuentan como la misma idea? */
-function equivalen(a: string, b: string): boolean {
-  const [x, y] = [norm(a), norm(b)]
-  if (x === y) return true
-  const [fx, fy] = [FAMILIA.get(x), FAMILIA.get(y)]
-  if (fx !== undefined && fx === fy) return true
-  const [rx, ry] = [raiz(x), raiz(y)]
-  return rx === ry && rx.length >= 4
-}
-
-const palabras = (s: string): string[] =>
-  norm(sinEtiquetas(s)).split(/[^a-zñ0-9_]+/).filter(Boolean)
-
-/** Términos con peso conceptual del modelo: lo que el autor marcó en negrita o en <code>.
-    Sólo se rellena con palabras largas cuando el modelo marcó menos de dos: si el autor
-    marcó los conceptos, ésos son los conceptos. Rellenar hasta seis metía ruido ("ensucia",
-    "durante", "guarda") y lo contaba como si al alumno le hubiera faltado algo. */
-function conceptosDelModelo(html: string): string[] {
-  const marcados = [...html.matchAll(/<(?:b|strong|code)>(.*?)<\/(?:b|strong|code)>/gis)]
-    // se recorta la puntuación de los bordes: el modelo escribe "<b>Falso.</b>" y el punto
-    // no es parte del concepto
-    .map((m) => sinEtiquetas(m[1] ?? '').trim().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N})]+$/gu, ''))
-    .filter((t) => t.length > 1)
-
-  const candidatos = [...marcados]
-  if (marcados.length < 2) {
-    candidatos.push(...palabras(html).filter((w) => w.length >= 6 && !VACIAS.has(w)))
-  }
-
-  const unicos: string[] = []
-  for (const t of candidatos) {
-    const k = norm(t)
-    if (!k) continue
-    // se descarta lo que ya está contenido en un concepto anterior: "saltee" sobra si ya
-    // se listó "saltee demasiada entrada", y contarlos por separado infla el puntaje
-    if (unicos.some((u) => { const n = norm(u); return n.includes(k) || k.includes(n) })) continue
-    unicos.push(t)
-    if (unicos.length >= 6) break
-  }
-  return unicos
-}
-
-/** ¿El alumno tocó este concepto? Exige que estén sus palabras con peso —por raíz o por
-    sinónimo—, no la frase textual. Un concepto de una sola palabra se cumple con esa. */
-function conceptoPresente(termino: string, delAlumno: string[]): boolean {
-  const claves = palabras(termino).filter((w) => w.length > 2 && !VACIAS.has(w))
-  if (!claves.length) return false
-  const halladas = claves.filter((c) => delAlumno.some((w) => equivalen(c, w))).length
-  /* En un concepto de una o dos palabras se exigen TODAS: con la mitad, "tabla de símbolos"
-     se lo llevaría quien escribió "tabla SLR", que no es lo mismo. Recién a partir de tres
-     se perdona una, porque ahí la que falta suele ser accesoria. */
-  return claves.length <= 2 ? halladas === claves.length : halladas / claves.length >= 0.67
-}
-
-export function compararProsa(delAlumno: string, modeloHtml: string): Comparacion {
-  const mias = palabras(delAlumno)
-  const conceptos = conceptosDelModelo(modeloHtml).map((termino) => ({
-    termino,
-    presente: conceptoPresente(termino, mias)
-  }))
-  const n = conceptos.filter((c) => c.presente).length
-  return {
-    clase: 'asistida',
-    conceptos,
-    detalle: conceptos.length
-      ? `Tu respuesta toca ${n} de ${conceptos.length} conceptos del modelo. Esto NO es una corrección: es una ayuda para que te califiques.`
-      : 'Compará tu respuesta con el modelo y calificate.'
-  }
+/** Compara la elección del alumno con la del modelo. */
+export function compararVF(eleccion: ValorVF, modeloHtml: string): Comparacion | null {
+  const suya = veredictoVF(modeloHtml)
+  if (!suya) return null
+  const largo = (v: ValorVF) => (v === 'V' ? 'Verdadero' : 'Falso')
+  return eleccion === suya
+    ? { ok: true, detalle: `Es ${largo(suya)}. Leé la justificación del modelo y fijate si coincide con la tuya.` }
+    : { ok: false, detalle: `Es ${largo(suya)}, no ${largo(eleccion)}. La justificación del modelo explica por qué.` }
 }
 
 /* ---------- despachador ---------- */
 
-/** Elige cómo comparar según lo que se pueda verificar de verdad. */
+/** Devuelve una comparación SÓLO si hay un motor que pueda dar un veredicto de verdad.
+    Para todo lo demás devuelve null y la vista pasa a autoevaluación: no hay puntaje
+    aproximado, no hay "conceptos tocados", no hay nada que se pueda leer como una nota. */
 export function comparar(delAlumno: string, modeloHtml: string): Comparacion | null {
   if (!delAlumno.trim()) return null
 
@@ -287,5 +178,5 @@ export function comparar(delAlumno: string, modeloHtml: string): Comparacion | n
   if (modeloFormal && pareceGramatica(delAlumno) && pareceGramatica(modeloFormal)) {
     return compararGramaticas(delAlumno, modeloFormal)
   }
-  return compararProsa(delAlumno, modeloHtml)
+  return null
 }
