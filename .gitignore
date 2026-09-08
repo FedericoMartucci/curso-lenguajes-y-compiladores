@@ -25,3 +25,6 @@ Thumbs.db
 # capturas de la revisión visual
 .playwright-mcp/
 *.png
+
+# artefactos de herramientas locales
+.impeccable/
